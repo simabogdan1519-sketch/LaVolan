@@ -178,10 +178,10 @@ class NimbusTheme {
 
       // Card-ul standard rămâne disponibil ca fallback (e.g. Dialog),
       // dar pentru carduri vizibile folosește GlassCard direct.
-      cardTheme: CardThemeData(
-        color: cs.surfaceContainer.withValues(alpha: 0.45),
+      cardTheme: CardTheme(
+        color: cs.surfaceContainer.withOpacity(0.45),
         surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black.withValues(alpha: 0.18),
+        shadowColor: Colors.black.withOpacity(0.18),
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -234,7 +234,7 @@ class NimbusTheme {
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
           foregroundColor: cs.onSurface,
-          backgroundColor: Colors.white.withValues(alpha: 0.10),
+          backgroundColor: Colors.white.withOpacity(0.10),
           shape: const CircleBorder(),
           padding: const EdgeInsets.all(10),
           minimumSize: const Size(44, 44),
@@ -242,8 +242,8 @@ class NimbusTheme {
       ),
 
       chipTheme: ChipThemeData(
-        backgroundColor: Colors.white.withValues(alpha: 0.12),
-        selectedColor: Colors.white.withValues(alpha: 0.28),
+        backgroundColor: Colors.white.withOpacity(0.12),
+        selectedColor: Colors.white.withOpacity(0.28),
         side: BorderSide(color: cs.outlineVariant, width: 0.5),
         labelStyle: txt.labelLarge?.copyWith(color: cs.onSurface),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -258,7 +258,7 @@ class NimbusTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: cs.primary.withValues(alpha: 0.18),
+        indicatorColor: cs.primary.withOpacity(0.18),
         elevation: 0,
         height: 64,
         labelTextStyle: WidgetStateProperty.resolveWith((s) =>
@@ -270,10 +270,10 @@ class NimbusTheme {
       ),
 
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: cs.surfaceContainer.withValues(alpha: 0.7),
+        backgroundColor: cs.surfaceContainer.withOpacity(0.7),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        modalBackgroundColor: cs.surfaceContainer.withValues(alpha: 0.7),
+        modalBackgroundColor: cs.surfaceContainer.withOpacity(0.7),
         modalElevation: 0,
         showDragHandle: true,
         dragHandleColor: cs.outline,
@@ -285,7 +285,7 @@ class NimbusTheme {
       // Input fields — glass ușor, hairline 0.5px.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.08),
+        fillColor: Colors.white.withOpacity(0.08),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         hintStyle: txt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
         labelStyle: txt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),

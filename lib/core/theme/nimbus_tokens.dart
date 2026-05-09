@@ -87,40 +87,40 @@ class NimbusTokens extends ThemeExtension<NimbusTokens> {
         watch:    const Color(0xFFFFC85A),                     // amber
         warn:     const Color(0xFFFF7A6B),                     // coral
         critical: const Color(0xFFFF4D5E),                     // signal red
-        safeSoft:     const Color(0xFF41E0B0).withValues(alpha: 0.18),
-        watchSoft:    const Color(0xFFFFC85A).withValues(alpha: 0.18),
-        warnSoft:     const Color(0xFFFF7A6B).withValues(alpha: 0.18),
-        criticalSoft: const Color(0xFFFF4D5E).withValues(alpha: 0.20),
+        safeSoft:     const Color(0xFF41E0B0).withOpacity(0.18),
+        watchSoft:    const Color(0xFFFFC85A).withOpacity(0.18),
+        warnSoft:     const Color(0xFFFF7A6B).withOpacity(0.18),
+        criticalSoft: const Color(0xFFFF4D5E).withOpacity(0.20),
       ),
 
       glass: NimbusGlassScale(
         // Alpha-ul peste mesh; sigma = blur radius pentru ImageFilter.blur.
         light: NimbusGlassLayer(
-          fill: (isDark ? Colors.white : Colors.white).withValues(alpha: 0.10),
-          insetHighlight: (isDark ? Colors.white : Colors.white).withValues(alpha: 0.20),
+          fill: (isDark ? Colors.white : Colors.white).withOpacity(0.10),
+          insetHighlight: (isDark ? Colors.white : Colors.white).withOpacity(0.20),
           blurSigma: 18,
         ),
         heavy: NimbusGlassLayer(
-          fill: (isDark ? Colors.white : Colors.white).withValues(alpha: 0.16),
-          insetHighlight: (isDark ? Colors.white : Colors.white).withValues(alpha: 0.35),
+          fill: (isDark ? Colors.white : Colors.white).withOpacity(0.16),
+          insetHighlight: (isDark ? Colors.white : Colors.white).withOpacity(0.35),
           blurSigma: 30,
         ),
         ultra: NimbusGlassLayer(
-          fill: (isDark ? Colors.white : Colors.white).withValues(alpha: 0.22),
-          insetHighlight: (isDark ? Colors.white : Colors.white).withValues(alpha: 0.45),
+          fill: (isDark ? Colors.white : Colors.white).withOpacity(0.22),
+          insetHighlight: (isDark ? Colors.white : Colors.white).withOpacity(0.45),
           blurSigma: 42,
         ),
       ),
 
       shadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.08),
+          color: Colors.black.withOpacity(isDark ? 0.18 : 0.08),
           blurRadius: 24, offset: const Offset(0, 8),
         ),
       ],
 
-      borderHairline: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.10 : 0.08),
-      borderGlass:    (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.25 : 0.10),
+      borderHairline: (isDark ? Colors.white : Colors.black).withOpacity(isDark ? 0.10 : 0.08),
+      borderGlass:    (isDark ? Colors.white : Colors.black).withOpacity(isDark ? 0.25 : 0.10),
 
       spacing: const NimbusSpacing(),
       radii: const NimbusRadii(),

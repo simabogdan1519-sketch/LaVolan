@@ -64,7 +64,7 @@ class _Spot extends StatelessWidget {
           gradient: RadialGradient(
             center: alignment,
             radius: radiusFactor,
-            colors: [color, color.withValues(alpha: 0)],
+            colors: [color, color.withOpacity(0)],
             stops: const [0, 1],
           ),
         ),
@@ -180,8 +180,8 @@ class GlassCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: radius,
-        splashColor: Colors.white.withValues(alpha: 0.08),
-        highlightColor: Colors.white.withValues(alpha: 0.04),
+        splashColor: Colors.white.withOpacity(0.08),
+        highlightColor: Colors.white.withOpacity(0.04),
         child: withShadow,
       ),
     );
@@ -230,7 +230,7 @@ class RiskPill extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Colors.black.withValues(alpha: 0.85),
+          color: Colors.black.withOpacity(0.85),
           fontWeight: FontWeight.w800,
         ),
       ),

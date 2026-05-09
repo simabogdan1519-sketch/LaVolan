@@ -113,7 +113,7 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.directions_car_filled_rounded,
-                size: 96, color: cs.onSurface.withValues(alpha: 0.7)),
+                size: 96, color: cs.onSurface.withOpacity(0.7)),
             const SizedBox(height: 16),
             Text('Bun venit la LaVolan',
                 style: Theme.of(context).textTheme.headlineSmall),
@@ -245,9 +245,9 @@ class _VehicleAvatar extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+        color: cs.surfaceContainerHighest.withOpacity(0.4),
         border: Border.all(
-            color: Colors.white.withValues(alpha: 0.25), width: 1.5),
+            color: Colors.white.withOpacity(0.25), width: 1.5),
       ),
       child: ClipOval(
         child: has
@@ -265,7 +265,7 @@ class _VehicleAvatar extends StatelessWidget {
   Widget _fallbackIcon(ColorScheme cs, double size) => Icon(
         Icons.directions_car_rounded,
         size: size * 0.5,
-        color: cs.onSurface.withValues(alpha: 0.85),
+        color: cs.onSurface.withOpacity(0.85),
       );
 }
 
@@ -277,10 +277,10 @@ class _MetaChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.10),
+        color: Colors.white.withOpacity(0.10),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-            color: Colors.white.withValues(alpha: 0.15), width: 0.5),
+            color: Colors.white.withOpacity(0.15), width: 0.5),
       ),
       child: Text(
         text,
@@ -446,9 +446,9 @@ class _NextDocumentCard extends ConsumerWidget {
         return 'ITP';
       case DocumentType.rovinieta:
         return 'Rovinietă';
-      case DocumentType.casco:
-        return 'CASCO';
-      case DocumentType.other:
+      case DocumentType.talon:
+        return 'Talon';
+      case DocumentType.altul:
         return 'Document';
     }
   }
@@ -507,7 +507,7 @@ class _PenaltyCard extends ConsumerWidget {
               value: progress,
               minHeight: 8,
               valueColor: AlwaysStoppedAnimation(color),
-              backgroundColor: Colors.white.withValues(alpha: 0.10),
+              backgroundColor: Colors.white.withOpacity(0.10),
             ),
           ),
           const SizedBox(height: 10),
@@ -580,7 +580,7 @@ class _FuelCard extends ConsumerWidget {
               Container(
                 width: 1,
                 height: 40,
-                color: cs.outlineVariant.withValues(alpha: 0.5),
+                color: cs.outlineVariant.withOpacity(0.5),
               ),
               Expanded(
                 child: _Metric(
@@ -594,7 +594,7 @@ class _FuelCard extends ConsumerWidget {
               Container(
                 width: 1,
                 height: 40,
-                color: cs.outlineVariant.withValues(alpha: 0.5),
+                color: cs.outlineVariant.withOpacity(0.5),
               ),
               Expanded(
                 child: _Metric(
@@ -670,7 +670,7 @@ class _MaintenanceCard extends ConsumerWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: t.risk.safe.withValues(alpha: 0.18),
+              color: t.risk.safe.withOpacity(0.18),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.build_rounded, color: t.risk.safe),

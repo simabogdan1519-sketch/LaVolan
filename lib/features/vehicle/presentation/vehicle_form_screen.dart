@@ -292,7 +292,7 @@ class _PhotoPicker extends StatelessWidget {
               border: Border.all(color: cs.outlineVariant, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: cs.shadow.withValues(alpha: 0.08),
+                  color: cs.shadow.withOpacity(0.08),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
