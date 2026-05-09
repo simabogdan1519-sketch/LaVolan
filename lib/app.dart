@@ -13,9 +13,9 @@ class LaVolanApp extends ConsumerWidget {
     return MaterialApp(
       title: 'LaVolan',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      theme: NimbusTheme.light(),
+      darkTheme: NimbusTheme.dark(),
+      themeMode: ThemeMode.dark,
       locale: const Locale('ro', 'RO'),
       supportedLocales: const [
         Locale('ro', 'RO'),

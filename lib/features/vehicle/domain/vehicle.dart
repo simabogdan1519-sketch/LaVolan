@@ -38,6 +38,8 @@ class Vehicle extends HiveObject {
   String? notes;
   @HiveField(9)
   DateTime createdAt;
+  @HiveField(10)
+  String? photoPath;
 
   Vehicle({
     required this.id,
@@ -50,6 +52,7 @@ class Vehicle extends HiveObject {
     this.vin,
     this.notes,
     DateTime? createdAt,
+    this.photoPath,
   }) : createdAt = createdAt ?? DateTime.now();
 
   String get displayName => '$brand $model ($year)';

@@ -39,13 +39,14 @@ class VehicleAdapter extends TypeAdapter<Vehicle> {
       vin: fields[7] as String?,
       notes: fields[8] as String?,
       createdAt: fields[9] as DateTime?,
+      photoPath: fields[10] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Vehicle obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)..write(obj.id)
       ..writeByte(1)..write(obj.brand)
       ..writeByte(2)..write(obj.model)
@@ -55,6 +56,7 @@ class VehicleAdapter extends TypeAdapter<Vehicle> {
       ..writeByte(6)..write(obj.mileage)
       ..writeByte(7)..write(obj.vin)
       ..writeByte(8)..write(obj.notes)
-      ..writeByte(9)..write(obj.createdAt);
+      ..writeByte(9)..write(obj.createdAt)
+      ..writeByte(10)..write(obj.photoPath);
   }
 }

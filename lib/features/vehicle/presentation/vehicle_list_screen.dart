@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/router/app_router.dart';
+import '../data/vehicle_photo_service.dart';
+import '../domain/vehicle.dart';
 import 'vehicle_providers.dart';
 
 class VehicleListScreen extends ConsumerWidget {
@@ -22,11 +26,11 @@ class VehicleListScreen extends ConsumerWidget {
                 final v = vehicles[i];
                 return Card(
                   child: ListTile(
-                    leading: const Icon(Icons.directions_car_rounded, size: 32),
+                    leading: _VehicleAvatar(vehicle: v),
                     title: Text(v.displayName,
                         style: const TextStyle(fontWeight: FontWeight.w700)),
-                    subtitle:
-                        Text('${v.licensePlate} · ${v.fuelLabelRo} · ${v.mileage} km'),
+                    subtitle: Text(
+                        '${v.licensePlate} · ${v.fuelLabelRo} · ${v.mileage} km'),
                     trailing: PopupMenuButton<String>(
                       onSelected: (action) async {
                         if (action == 'edit') {
@@ -49,6 +53,9 @@ class VehicleListScreen extends ConsumerWidget {
                             ),
                           );
                           if (ok == true) {
+                            // Clean up the photo file before removing the row.
+                            await VehiclePhotoService.instance
+                                .delete(v.photoPath);
                             await ref
                                 .read(vehiclesProvider.notifier)
                                 .delete(v.id);
@@ -71,4 +78,39 @@ class VehicleListScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _VehicleAvatar extends StatelessWidget {
+  const _VehicleAvatar({required this.vehicle});
+  final Vehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final p = vehicle.photoPath;
+    if (p != null && p.isNotEmpty) {
+      return ClipOval(
+        child: Image.file(
+          File(p),
+          width: 44,
+          height: 44,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              _fallback(cs),
+        ),
+      );
+    }
+    return _fallback(cs);
+  }
+
+  Widget _fallback(ColorScheme cs) => Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: cs.primaryContainer,
+        ),
+        child: Icon(Icons.directions_car_rounded,
+            color: cs.onPrimaryContainer, size: 24),
+      );
 }

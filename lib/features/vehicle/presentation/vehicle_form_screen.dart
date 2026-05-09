@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
+import '../data/vehicle_photo_service.dart';
 import '../domain/vehicle.dart';
 import 'vehicle_providers.dart';
 
@@ -25,6 +29,9 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
   FuelType _fuel = FuelType.benzina;
 
   Vehicle? _existing;
+  String? _photoPath;
+  String? _originalPhotoPath;
+  late String _photoVehicleId;
 
   @override
   void initState() {
@@ -43,8 +50,13 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
         _vin.text = v.vin ?? '';
         _notes.text = v.notes ?? '';
         _fuel = v.fuelType;
+        _photoPath = v.photoPath;
+        _originalPhotoPath = v.photoPath;
+        _photoVehicleId = v.id;
+        return;
       }
     }
+    _photoVehicleId = const Uuid().v4();
   }
 
   @override
@@ -55,9 +67,79 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
     super.dispose();
   }
 
+  Future<void> _pickPhoto(ImageSource source) async {
+    final newPath = await VehiclePhotoService.instance.pickAndStore(
+      vehicleId: _photoVehicleId,
+      source: source,
+    );
+    if (newPath == null) return;
+    final replacing = _photoPath;
+    if (replacing != null && replacing != _originalPhotoPath) {
+      await VehiclePhotoService.instance.delete(replacing);
+    }
+    if (!mounted) return;
+    setState(() => _photoPath = newPath);
+  }
+
+  Future<void> _removePhoto() async {
+    final current = _photoPath;
+    if (current != null && current != _originalPhotoPath) {
+      await VehiclePhotoService.instance.delete(current);
+    }
+    if (!mounted) return;
+    setState(() => _photoPath = null);
+  }
+
+  void _showPhotoSheet() {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_rounded),
+              title: const Text('Fă o poză'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickPhoto(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: const Text('Alege din galerie'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickPhoto(ImageSource.gallery);
+              },
+            ),
+            if (_photoPath != null)
+              ListTile(
+                leading: Icon(Icons.delete_rounded,
+                    color: Theme.of(context).colorScheme.error),
+                title: Text('Șterge poza',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.error)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _removePhoto();
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final notifier = ref.read(vehiclesProvider.notifier);
+
+    final shouldDeleteOriginalAfterSave =
+        _originalPhotoPath != null && _originalPhotoPath != _photoPath;
+
     if (_existing != null) {
       _existing!
         ..brand = _brand.text.trim()
@@ -67,11 +149,12 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
         ..mileage = int.tryParse(_mileage.text.trim()) ?? 0
         ..fuelType = _fuel
         ..vin = _vin.text.trim().isEmpty ? null : _vin.text.trim()
-        ..notes = _notes.text.trim().isEmpty ? null : _notes.text.trim();
+        ..notes = _notes.text.trim().isEmpty ? null : _notes.text.trim()
+        ..photoPath = _photoPath;
       await notifier.update(_existing!);
     } else {
       final v = Vehicle(
-        id: const Uuid().v4(),
+        id: _photoVehicleId,
         brand: _brand.text.trim(),
         model: _model.text.trim(),
         year: int.tryParse(_year.text.trim()) ?? DateTime.now().year,
@@ -80,9 +163,15 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
         mileage: int.tryParse(_mileage.text.trim()) ?? 0,
         vin: _vin.text.trim().isEmpty ? null : _vin.text.trim(),
         notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+        photoPath: _photoPath,
       );
       await notifier.add(v);
     }
+
+    if (shouldDeleteOriginalAfterSave) {
+      await VehiclePhotoService.instance.delete(_originalPhotoPath);
+    }
+
     if (mounted) Navigator.pop(context);
   }
 
@@ -97,6 +186,12 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            Center(
+                child: _PhotoPicker(
+              path: _photoPath,
+              onTap: _showPhotoSheet,
+            )),
+            const SizedBox(height: 24),
             _field(_brand, 'Marcă', required: true),
             _field(_model, 'Model', required: true),
             Row(
@@ -172,6 +267,62 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       case FuelType.gpl:
         return 'GPL';
     }
+  }
+}
+
+class _PhotoPicker extends StatelessWidget {
+  const _PhotoPicker({required this.path, required this.onTap});
+  final String? path;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final has = path != null && path!.isNotEmpty;
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 132,
+            height: 132,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: cs.surfaceContainerHighest,
+              border: Border.all(color: cs.outlineVariant, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: cs.shadow.withValues(alpha: 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: has
+                  ? Image.file(
+                      File(path!),
+                      fit: BoxFit.cover,
+                      width: 132,
+                      height: 132,
+                      errorBuilder: (_, __, ___) => Icon(
+                          Icons.directions_car_rounded,
+                          size: 56,
+                          color: cs.onSurfaceVariant),
+                    )
+                  : Icon(Icons.add_a_photo_rounded,
+                      size: 44, color: cs.onSurfaceVariant),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: onTap,
+          icon: Icon(has ? Icons.edit_rounded : Icons.add_a_photo_rounded),
+          label: Text(has ? 'Schimbă poza' : 'Adaugă poză'),
+        ),
+      ],
+    );
   }
 }
 

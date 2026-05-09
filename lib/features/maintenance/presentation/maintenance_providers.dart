@@ -13,6 +13,21 @@ final maintenanceProvider =
   return MaintenanceNotifier(ref.watch(maintenanceRepositoryProvider));
 });
 
+/// The next maintenance entry due across all vehicles (or for the selected
+/// vehicle if you prefer — currently global to keep dashboard simple).
+final nextMaintenanceProvider = Provider<MaintenanceEntry?>((ref) {
+  final list = ref.watch(maintenanceProvider);
+  final pending = list
+      .where((m) => m.nextDueDate != null || m.nextDueMileage != null)
+      .toList()
+    ..sort((a, b) {
+      final aDate = a.nextDueDate ?? DateTime(2999);
+      final bDate = b.nextDueDate ?? DateTime(2999);
+      return aDate.compareTo(bDate);
+    });
+  return pending.isEmpty ? null : pending.first;
+});
+
 class MaintenanceNotifier extends StateNotifier<List<MaintenanceEntry>> {
   MaintenanceNotifier(this._repo) : super(_repo.getAll());
   final MaintenanceRepository _repo;
