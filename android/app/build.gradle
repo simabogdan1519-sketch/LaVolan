@@ -32,7 +32,9 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "ro.simabogdan.lavolan"
     compileSdk = 35
-    ndkVersion = flutter.ndkVersion
+    // Highest NDK required by any plugin (camera, mlkit, workmanager, etc.).
+    // Backward-compatible per AGP guidance.
+    ndkVersion = "25.1.8937393"
 
     compileOptions {
         coreLibraryDesugaringEnabled true

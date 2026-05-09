@@ -6,6 +6,17 @@
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
 
+# Flutter deferred components reference Play Core, which we don't bundle
+# (we don't ship dynamic feature modules). Tell R8 to ignore those refs.
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }
+-keep interface com.google.android.play.core.** { *; }
+
+# Embedding deferred-components stubs — keep their entry points so R8 doesn't
+# try to resolve through them.
+-keep class io.flutter.embedding.engine.deferredcomponents.** { *; }
+-keep class io.flutter.app.FlutterPlayStoreSplitApplication { *; }
+
 # Google ML Kit Text Recognition
 -keep class com.google.mlkit.** { *; }
 -keep class com.google.android.gms.internal.mlkit_vision_text_common.** { *; }
