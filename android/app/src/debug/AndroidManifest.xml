@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Flutter needs INTERNET permission to communicate with the running tools. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+</manifest>

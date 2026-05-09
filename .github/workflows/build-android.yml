@@ -1,0 +1,151 @@
+name: Build LaVolan Android
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.24.5'
+  JAVA_VERSION: '17'
+
+jobs:
+  build:
+    name: Build APK + AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Show versions
+        run: |
+          flutter --version
+          java -version
+          dart --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze project
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings || true
+
+      # ---------------------------------------------------------------
+      # Versioning: use GitHub run number as build number.
+      # versionName comes from pubspec.yaml; versionCode = run number.
+      # ---------------------------------------------------------------
+      - name: Compute version info
+        id: version
+        run: |
+          BUILD_NUMBER=${{ github.run_number }}
+          PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+          echo "version_name=${PUBSPEC_VERSION}" >> $GITHUB_OUTPUT
+          echo "Building LaVolan ${PUBSPEC_VERSION}+${BUILD_NUMBER}"
+
+      # ---------------------------------------------------------------
+      # OPTIONAL: signing configuration via GitHub Secrets.
+      # If KEYSTORE_BASE64 is not set, build produces an unsigned debug-keystore APK.
+      # To enable release signing, add these secrets to the repo:
+      #   - KEYSTORE_BASE64
+      #   - KEYSTORE_PASSWORD
+      #   - KEY_ALIAS
+      #   - KEY_PASSWORD
+      # ---------------------------------------------------------------
+      - name: Decode keystore (if provided)
+        if: ${{ env.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p android/keystore
+          echo "$KEYSTORE_BASE64" | base64 -d > android/keystore/release.jks
+          echo "Keystore decoded."
+
+      - name: Create key.properties (if provided)
+        if: ${{ env.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cat > android/key.properties << EOF
+          storeFile=keystore/release.jks
+          storePassword=${KEYSTORE_PASSWORD}
+          keyAlias=${KEY_ALIAS}
+          keyPassword=${KEY_PASSWORD}
+          EOF
+          echo "key.properties created."
+
+      - name: Build APK (release)
+        run: |
+          flutter build apk --release \
+            --build-name=${{ steps.version.outputs.version_name }} \
+            --build-number=${{ steps.version.outputs.build_number }}
+
+      - name: Build AAB (release)
+        run: |
+          flutter build appbundle --release \
+            --build-name=${{ steps.version.outputs.version_name }} \
+            --build-number=${{ steps.version.outputs.build_number }}
+
+      - name: Rename artifacts
+        run: |
+          mkdir -p artifacts
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             artifacts/lavolan-${{ steps.version.outputs.version_name }}+${{ steps.version.outputs.build_number }}.apk
+          cp build/app/outputs/bundle/release/app-release.aab \
+             artifacts/lavolan-${{ steps.version.outputs.version_name }}+${{ steps.version.outputs.build_number }}.aab
+          ls -lh artifacts/
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lavolan-apk-${{ steps.version.outputs.version_name }}-${{ steps.version.outputs.build_number }}
+          path: artifacts/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lavolan-aab-${{ steps.version.outputs.version_name }}-${{ steps.version.outputs.build_number }}
+          path: artifacts/*.aab
+          retention-days: 30
+          if-no-files-found: error
+
+      # ---------------------------------------------------------------
+      # If pushed as a tag (v*), publish a GitHub Release with the APK.
+      # ---------------------------------------------------------------
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: LaVolan ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            artifacts/*.apk
+            artifacts/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
