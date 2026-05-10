@@ -91,8 +91,14 @@ class NimbusTheme {
   // ──────────── ThemeData ────────────
   static ThemeData _buildTheme(ColorScheme cs, ThemeVariantPalette palette) {
     final txt = _textTheme(cs.onSurface, palette);
+    final chromeMapped = switch (palette.chrome) {
+      LvChrome.soft => NimbusChrome.soft,
+      LvChrome.glow => NimbusChrome.glow,
+      LvChrome.block => NimbusChrome.block,
+      LvChrome.paper => NimbusChrome.paper,
+    };
     final tokens = NimbusTokens.fromBrightness(cs.brightness)
-        .copyWith(risk: palette.risk);
+        .copyWith(risk: palette.risk, chrome: chromeMapped);
 
     final isDark = cs.brightness == Brightness.dark;
     final isBlock = palette.chrome == LvChrome.block;

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/app_settings_service.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/nimbus_tokens.dart';
 import '../../../core/theme/nimbus_widgets.dart';
 import '../../../core/theme/theme_variants.dart';
 
@@ -15,16 +14,7 @@ class ThemePickerScreen extends ConsumerWidget {
     final current = ref.watch(appSettingsProvider).themeVariant;
     return Stack(
       children: [
-        Positioned.fill(
-          child: AnimatedMeshBackdrop(
-            tint: const NimbusVehicleTint(
-              a: Color(0xFF9CC4DA),
-              b: Color(0xFF5687AA),
-              c: Color(0xFF3D4F7E),
-              d: Color(0xFF1B2342),
-            ),
-          ),
-        ),
+        const Positioned.fill(child: LvBackdrop()),
         Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(title: const Text('Temă')),

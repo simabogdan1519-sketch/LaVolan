@@ -4,7 +4,6 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/services/app_settings_service.dart';
-import '../../../core/theme/nimbus_tokens.dart';
 import '../../../core/theme/nimbus_widgets.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -27,12 +26,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'LaVolan',
       body:
           'Asistentul tău digital pentru mașină. RCA, ITP, rovinieta, mentenanță, combustibil — toate într-un loc.',
-      tint: NimbusVehicleTint(
-        a: Color(0xFF9CC4DA),
-        b: Color(0xFF5687AA),
-        c: Color(0xFF3D4F7E),
-        d: Color(0xFF1B2342),
-      ),
     ),
     _OnboardPageData(
       icon: Icons.notifications_active_rounded,
@@ -40,12 +33,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'Niciodată cu actele expirate',
       body:
           'Adaugă RCA, ITP și rovinieta. Te anunțăm cu 30, 14, 7 și 1 zi înainte de expirare.',
-      tint: NimbusVehicleTint(
-        a: Color(0xFFF4D9B8),
-        b: Color(0xFFE89F7A),
-        c: Color(0xFFA66B8C),
-        d: Color(0xFF3E4868),
-      ),
     ),
     _OnboardPageData(
       icon: Icons.document_scanner_rounded,
@@ -53,12 +40,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'Scanează polița în 3 secunde',
       body:
           'Camera + OCR detectează automat tipul documentului, data expirării și asiguratorul. Tu doar confirmi.',
-      tint: NimbusVehicleTint(
-        a: Color(0xFFA8E0C8),
-        b: Color(0xFF4A9E78),
-        c: Color(0xFF1F4D3A),
-        d: Color(0xFF0A1812),
-      ),
     ),
     _OnboardPageData(
       icon: Icons.local_gas_station_rounded,
@@ -66,12 +47,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'Combustibil, mentenanță, puncte',
       body:
           'Calcul automat al consumului în L/100 km, planificare oil change, tracker pentru punctele de penalizare.',
-      tint: NimbusVehicleTint(
-        a: Color(0xFFFFD66E),
-        b: Color(0xFFE0791F),
-        c: Color(0xFF6B2D14),
-        d: Color(0xFF1A0F08),
-      ),
     ),
   ];
 
@@ -118,15 +93,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tint = _index < _pages.length
-        ? _pages[_index].tint
-        : _pages[_pages.length - 1].tint;
     final isConfigPage = _index == _pages.length;
     final isLast = _index == _pages.length - 1;
 
     return Stack(
       children: [
-        Positioned.fill(child: AnimatedMeshBackdrop(tint: tint)),
+        const Positioned.fill(child: LvBackdrop()),
         Scaffold(
           backgroundColor: Colors.transparent,
           body: SafeArea(
@@ -232,13 +204,11 @@ class _OnboardPageData {
     required this.eyebrow,
     required this.title,
     required this.body,
-    required this.tint,
   });
   final IconData icon;
   final String eyebrow;
   final String title;
   final String body;
-  final NimbusVehicleTint tint;
 }
 
 class _InfoPage extends StatelessWidget {

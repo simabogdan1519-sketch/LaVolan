@@ -2,16 +2,21 @@
 //
 // Tokeni Nimbus care nu încap în [ColorScheme]:
 //   • risc (safe / watch / warn / critical)
-//   • tinte mesh per vehicul (4 stop-uri)
+//   • tinte mesh per vehicul (4 stop-uri) — legacy, păstrate pentru
+//     compatibilitate cu vehicle_tint_service
 //   • scări de glass (light / heavy / ultra) — alpha + blur sigma
 //   • timing curves recomandate pentru micro-interactions
 //   • spacing scale (4-step) și radii canonice
+//   • chrome — stilul de fundal (soft / glow / block / paper)
 //
 // Acces:
 //   final t = Theme.of(context).extension<NimbusTokens>()!;
 //   color: t.riskColor(points: vehicle.points);
 
 import 'package:flutter/material.dart';
+
+/// Stilul vizual de fundal pentru tema activă.
+enum NimbusChrome { soft, glow, block, paper }
 
 @immutable
 class NimbusTokens extends ThemeExtension<NimbusTokens> {
@@ -26,6 +31,7 @@ class NimbusTokens extends ThemeExtension<NimbusTokens> {
     required this.radii,
     required this.motion,
     required this.tints,
+    this.chrome = NimbusChrome.soft,
   });
 
   final Brightness brightness;
@@ -38,6 +44,7 @@ class NimbusTokens extends ThemeExtension<NimbusTokens> {
   final NimbusRadii radii;
   final NimbusMotion motion;
   final Map<String, NimbusVehicleTint> tints;
+  final NimbusChrome chrome;
 
   // ──────────── helpers ────────────
 
@@ -171,6 +178,7 @@ class NimbusTokens extends ThemeExtension<NimbusTokens> {
     NimbusRadii? radii,
     NimbusMotion? motion,
     Map<String, NimbusVehicleTint>? tints,
+    NimbusChrome? chrome,
   }) =>
       NimbusTokens(
         brightness: brightness ?? this.brightness,
@@ -183,6 +191,7 @@ class NimbusTokens extends ThemeExtension<NimbusTokens> {
         radii: radii ?? this.radii,
         motion: motion ?? this.motion,
         tints: tints ?? this.tints,
+        chrome: chrome ?? this.chrome,
       );
 
   @override
@@ -199,6 +208,7 @@ class NimbusTokens extends ThemeExtension<NimbusTokens> {
       radii: radii,
       motion: motion,
       tints: t < 0.5 ? tints : other.tints,
+      chrome: t < 0.5 ? chrome : other.chrome,
     );
   }
 }

@@ -1,59 +1,154 @@
 // lib/core/theme/nimbus_widgets.dart
 //
-// Compoziție vizuală: GlassCard (sticla peste mesh) și MeshBackdrop (fundalul
-// dinamic per vehicul). Theme-ul Material singur nu poate reda glass-ul —
-// folosește astea ca primitive.
+// Compoziție vizuală: GlassCard (sticla peste fundal) și LvBackdrop
+// (fundalul derivat din tema activă).
+//
+// Fundalul nu mai e mesh-dinamic per vehicul — în schimb, e generat din
+// schema de culori a temei active (gradient subtil + spot accent), ca să
+// se potrivească natural cu fiecare temă.
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'nimbus_tokens.dart';
 
-// ──────────── MeshBackdrop ────────────
+// ──────────── LvBackdrop ────────────
 //
-// Fundal cu 3 spot-uri radiale + culoare de bază. Pune-l ca primul copil
-// al Stack-ului care conține Scaffold-ul, sau folosește-l ca background
-// la tot ecranul. Tinte se schimbă cu vehiculul activ — animă cu
-// AnimatedSwitcher / TweenAnimationBuilder pe culori.
+// Fundal care urmează tema curentă. Pune-l ca primul copil al Stack-ului
+// care conține Scaffold-ul.
 //
-// Exemplu:
-//   Stack(
-//     children: [
-//       AnimatedMeshBackdrop(tint: t.tintFor(vehicle.id)),
-//       Scaffold(backgroundColor: Colors.transparent, body: …),
-//     ],
-//   );
+// Comportament per chrome:
+//   • soft (Blush, Olive, Mint) — gradient diagonal pe surface ↔
+//     surfaceContainerLow + 1 spot foarte difuz pe primary la opacitate
+//     mică. Calm, aerisit.
+//   • glow (Midnight) — surface aproape-negru cu un glow verde-neon
+//     ambiental.
+//   • block (Carbon Racing) — flat dark cu 2 spot-uri foarte subtile
+//     (roșu + alb) pentru a păstra identitatea sportivă fără zgomot.
+//   • paper (rezervat) — flat surface, fără spot-uri.
 
-class MeshBackdrop extends StatelessWidget {
-  const MeshBackdrop({super.key, required this.tint, this.grain = 0.06});
-  final NimbusVehicleTint tint;
-  final double grain; // 0..1 — opacitate film grain
+class LvBackdrop extends StatelessWidget {
+  const LvBackdrop({super.key, this.intensity = 1.0});
+
+  /// 0..1 — multiplicator pe opacitate. 1.0 = default. Folosește <1 pentru
+  /// ecrane unde fundalul ar concura cu conținutul (e.g. forms lungi).
+  final double intensity;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final tokens = theme.extension<NimbusTokens>();
+    final chrome = tokens?.chrome ?? NimbusChrome.soft;
+
+    switch (chrome) {
+      case NimbusChrome.glow:
+        return _GlowBackdrop(cs: cs, intensity: intensity);
+      case NimbusChrome.block:
+        return _BlockBackdrop(cs: cs, intensity: intensity);
+      case NimbusChrome.paper:
+        return DecoratedBox(decoration: BoxDecoration(color: cs.surface));
+      case NimbusChrome.soft:
+        return _SoftBackdrop(cs: cs, intensity: intensity);
+    }
+  }
+}
+
+class _SoftBackdrop extends StatelessWidget {
+  const _SoftBackdrop({required this.cs, required this.intensity});
+  final ColorScheme cs;
+  final double intensity;
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(color: tint.d),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            cs.surface,
+            cs.surfaceContainerLow,
+            cs.surfaceContainer,
+          ],
+          stops: const [0.0, 0.55, 1.0],
+        ),
+      ),
       child: Stack(fit: StackFit.expand, children: [
-        // 3 spot-uri radiale — alignment-urile match-uiesc UI-ul HTML
-        _Spot(color: tint.a, alignment: const Alignment(-0.64, -0.6), radiusFactor: 0.6),
-        _Spot(color: tint.b, alignment: const Alignment( 0.7,  -0.7), radiusFactor: 0.5),
-        _Spot(color: tint.c, alignment: const Alignment( 0.4,   0.6), radiusFactor: 0.7),
-        if (grain > 0)
-          IgnorePointer(
-            child: Opacity(
-              opacity: grain,
-              child: const ColoredBox(color: Colors.transparent),
-              // În producție: pune aici un PNG noise tile-uit cu BlendMode.overlay,
-              // sau un CustomPaint care desenează zgomot. Skipped aici pentru
-              // dependency-zero.
-            ),
-          ),
+        // spot accent foarte difuz în colțul de sus dreapta
+        _SoftSpot(
+          color: cs.primary.withOpacity(0.10 * intensity),
+          alignment: const Alignment(0.9, -0.85),
+          radiusFactor: 0.65,
+        ),
+        // spot secondary jos-stânga, și mai difuz
+        _SoftSpot(
+          color: cs.secondary.withOpacity(0.06 * intensity),
+          alignment: const Alignment(-0.9, 0.95),
+          radiusFactor: 0.7,
+        ),
       ]),
     );
   }
 }
 
-class _Spot extends StatelessWidget {
-  const _Spot({required this.color, required this.alignment, required this.radiusFactor});
+class _GlowBackdrop extends StatelessWidget {
+  const _GlowBackdrop({required this.cs, required this.intensity});
+  final ColorScheme cs;
+  final double intensity;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(color: cs.surfaceContainerLowest),
+      child: Stack(fit: StackFit.expand, children: [
+        _SoftSpot(
+          color: cs.primary.withOpacity(0.18 * intensity),
+          alignment: const Alignment(-0.4, -0.7),
+          radiusFactor: 0.7,
+        ),
+        _SoftSpot(
+          color: cs.secondary.withOpacity(0.10 * intensity),
+          alignment: const Alignment(0.8, 0.6),
+          radiusFactor: 0.6,
+        ),
+      ]),
+    );
+  }
+}
+
+class _BlockBackdrop extends StatelessWidget {
+  const _BlockBackdrop({required this.cs, required this.intensity});
+  final ColorScheme cs;
+  final double intensity;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(color: cs.surfaceContainerLowest),
+      child: Stack(fit: StackFit.expand, children: [
+        // un singur glow roșu, foarte subtil, în colțul de jos dreapta
+        _SoftSpot(
+          color: cs.primary.withOpacity(0.14 * intensity),
+          alignment: const Alignment(0.95, 1.0),
+          radiusFactor: 0.55,
+        ),
+        // și o linie ambient subtilă pe diagonală (vibe "racing stripe")
+        _SoftSpot(
+          color: cs.onSurface.withOpacity(0.03 * intensity),
+          alignment: const Alignment(-0.7, -0.7),
+          radiusFactor: 0.4,
+        ),
+      ]),
+    );
+  }
+}
+
+class _SoftSpot extends StatelessWidget {
+  const _SoftSpot({
+    required this.color,
+    required this.alignment,
+    required this.radiusFactor,
+  });
   final Color color;
   final Alignment alignment;
   final double radiusFactor;
@@ -71,45 +166,16 @@ class _Spot extends StatelessWidget {
       );
 }
 
-/// Variant care animează tranziția între tinte (folosește la schimbarea
-/// vehiculului). Durata și curve-ul vin din [NimbusTokens.motion].
-class AnimatedMeshBackdrop extends StatelessWidget {
-  const AnimatedMeshBackdrop({super.key, required this.tint});
-  final NimbusVehicleTint tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final motion = Theme.of(context).extension<NimbusTokens>()!.motion;
-    return TweenAnimationBuilder<NimbusVehicleTint>(
-      tween: _TintTween(end: tint),
-      duration: motion.meshSwap,
-      curve: motion.emphasized,
-      builder: (_, value, __) => MeshBackdrop(tint: value),
-    );
-  }
-}
-
-class _TintTween extends Tween<NimbusVehicleTint> {
-  _TintTween({required NimbusVehicleTint end}) : super(end: end);
-  @override
-  NimbusVehicleTint lerp(double t) => NimbusVehicleTint(
-        a: Color.lerp(begin?.a ?? end!.a, end!.a, t)!,
-        b: Color.lerp(begin?.b ?? end!.b, end!.b, t)!,
-        c: Color.lerp(begin?.c ?? end!.c, end!.c, t)!,
-        d: Color.lerp(begin?.d ?? end!.d, end!.d, t)!,
-      );
-}
-
 // ──────────── GlassCard ────────────
 //
 // Card translucent cu blur. Folosește în loc de Card-ul standard pentru
-// orice element pus peste mesh. Variantele:
+// orice element pus peste fundal. Variantele:
 //   GlassCard.heavy()  — card principal (radius 24)
 //   GlassCard.light()  — chip / control mic (radius 14)
 //   GlassCard.ultra()  — modal / overlay
 //
 // Important: BackdropFilter NU funcționează dacă nu e ceva în spatele
-// widget-ului — adică ai nevoie de MeshBackdrop sau de o imagine sub el.
+// widget-ului — adică ai nevoie de LvBackdrop sau de o imagine sub el.
 
 enum NimbusGlassWeight { light, heavy, ultra }
 

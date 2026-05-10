@@ -24,20 +24,11 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vehicles = ref.watch(vehiclesProvider);
-    final selected = ref.watch(selectedVehicleProvider);
-    final tintAsync = ref.watch(selectedVehicleTintProvider);
-    final tintResolver = ref.watch(vehicleTintResolverProvider);
-
-    // Async tint with synchronous fallback so the mesh never flashes.
-    final tint = tintAsync.maybeWhen(
-      data: (t) => t,
-      orElse: () => tintResolver(selected),
-    );
 
     if (vehicles.isEmpty) {
       return Stack(
         children: [
-          Positioned.fill(child: AnimatedMeshBackdrop(tint: tint)),
+          const Positioned.fill(child: LvBackdrop()),
           Scaffold(
             backgroundColor: Colors.transparent,
             body: const _EmptyState(),
@@ -48,7 +39,7 @@ class DashboardScreen extends ConsumerWidget {
 
     return Stack(
       children: [
-        Positioned.fill(child: AnimatedMeshBackdrop(tint: tint)),
+        const Positioned.fill(child: LvBackdrop()),
         Scaffold(
           backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,

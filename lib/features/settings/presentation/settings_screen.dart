@@ -4,10 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/app_settings_service.dart';
 import '../../../core/services/notification_service.dart';
-import '../../../core/theme/nimbus_tokens.dart';
 import '../../../core/theme/nimbus_widgets.dart';
 import '../../../infra/home_assistant/home_assistant_service.dart';
-import '../../vehicle/presentation/vehicle_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -15,20 +13,10 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
-    final tintAsync = ref.watch(selectedVehicleTintProvider);
-    final tint = tintAsync.maybeWhen(
-      data: (t) => t,
-      orElse: () => const NimbusVehicleTint(
-        a: Color(0xFF9CC4DA),
-        b: Color(0xFF5687AA),
-        c: Color(0xFF3D4F7E),
-        d: Color(0xFF1B2342),
-      ),
-    );
 
     return Stack(
       children: [
-        Positioned.fill(child: AnimatedMeshBackdrop(tint: tint)),
+        const Positioned.fill(child: LvBackdrop()),
         Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(title: const Text('Setări')),

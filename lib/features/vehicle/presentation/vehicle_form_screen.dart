@@ -281,38 +281,44 @@ class _PhotoPicker extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final has = path != null && path!.isNotEmpty;
     return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: 132,
-            height: 132,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.1),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: cs.shadow.withOpacity(0.18),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: has
-                  ? Image.file(
-                      File(path!),
-                      fit: BoxFit.cover,
-                      width: 132,
-                      height: 132,
-                      errorBuilder: (_, __, ___) => Icon(
-                          Icons.directions_car_rounded,
-                          size: 56,
-                          color: cs.onSurfaceVariant),
-                    )
-                  : Icon(Icons.add_a_photo_rounded,
-                      size: 44, color: cs.onSurfaceVariant),
+        Align(
+          alignment: Alignment.center,
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: 132,
+              height: 132,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: cs.primary.withOpacity(0.10),
+                border: Border.all(
+                    color: cs.primary.withOpacity(0.35), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: cs.shadow.withOpacity(0.18),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: has
+                    ? Image.file(
+                        File(path!),
+                        fit: BoxFit.cover,
+                        width: 132,
+                        height: 132,
+                        errorBuilder: (_, __, ___) => Icon(
+                            Icons.directions_car_rounded,
+                            size: 56,
+                            color: cs.onSurfaceVariant),
+                      )
+                    : Icon(Icons.add_a_photo_rounded,
+                        size: 44, color: cs.primary),
+              ),
             ),
           ),
         ),
