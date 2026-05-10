@@ -319,7 +319,14 @@ class _DocumentResultFormState extends ConsumerState<_DocumentResultForm> {
           _policy.text.trim().isEmpty ? null : _policy.text.trim(),
       imagePath: widget.image?.path,
     );
-    await ref.read(documentsProvider.notifier).add(doc);
+    try {
+      await ref.read(documentsProvider.notifier).add(doc);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Eroare la salvare: $e')));
+      return;
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Document salvat')));
@@ -498,7 +505,11 @@ class _FuelResultFormState extends ConsumerState<_FuelResultForm> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Completează câmpurile obligatorii (marcate cu *)')));
+      return;
+    }
     final selected = await requireVehicle(context, ref);
     if (selected == null) return;
 
@@ -520,12 +531,19 @@ class _FuelResultFormState extends ConsumerState<_FuelResultForm> {
       fullTank: _full,
       station: _station.text.trim().isEmpty ? null : _station.text.trim(),
     );
-    await ref.read(fuelProvider.notifier).add(f);
+    try {
+      await ref.read(fuelProvider.notifier).add(f);
 
-    // Auto-update vehicle mileage if greater.
-    if (mileage > selected.mileage) {
-      selected.mileage = mileage;
-      await ref.read(vehiclesProvider.notifier).update(selected);
+      // Auto-update vehicle mileage if greater.
+      if (mileage > selected.mileage) {
+        selected.mileage = mileage;
+        await ref.read(vehiclesProvider.notifier).update(selected);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Eroare la salvare: $e')));
+      return;
     }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

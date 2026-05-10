@@ -20,23 +20,32 @@ class DocumentsNotifier extends StateNotifier<List<VehicleDocument>> {
 
   Future<void> add(VehicleDocument d) async {
     await _repo.add(d);
-    await NotificationService.instance.scheduleExpiryReminders(
-      baseId: 'doc-${d.id}',
-      title: 'Document ${d.typeLabelRo}',
-      body: '${d.typeLabelRo} expiră curând',
-      expiry: d.expiryDate,
-    );
+    // Notification scheduling can fail (e.g. SCHEDULE_EXACT_ALARM not
+    // granted on Android 12+, or plugin not initialised yet) — we don't
+    // want a missing reminder to block the save itself.
+    try {
+      await NotificationService.instance.scheduleExpiryReminders(
+        baseId: 'doc-${d.id}',
+        title: 'Document ${d.typeLabelRo}',
+        body: '${d.typeLabelRo} expiră curând',
+        expiry: d.expiryDate,
+      );
+    } catch (e) {
+      // ignore — document is saved, reminders just won't fire
+    }
     state = _repo.getAll();
   }
 
   Future<void> update(VehicleDocument d) async {
     await _repo.update(d);
-    await NotificationService.instance.scheduleExpiryReminders(
-      baseId: 'doc-${d.id}',
-      title: 'Document ${d.typeLabelRo}',
-      body: '${d.typeLabelRo} expiră curând',
-      expiry: d.expiryDate,
-    );
+    try {
+      await NotificationService.instance.scheduleExpiryReminders(
+        baseId: 'doc-${d.id}',
+        title: 'Document ${d.typeLabelRo}',
+        body: '${d.typeLabelRo} expiră curând',
+        expiry: d.expiryDate,
+      );
+    } catch (_) {}
     state = _repo.getAll();
   }
 
