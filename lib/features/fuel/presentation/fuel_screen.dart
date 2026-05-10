@@ -302,7 +302,11 @@ class _FuelFormState extends ConsumerState<_FuelForm> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Completează câmpurile obligatorii')));
+      return;
+    }
     final selected = await requireVehicle(context, ref);
     if (selected == null) return;
     final mileage = int.tryParse(_mileage.text.trim());
@@ -310,6 +314,30 @@ class _FuelFormState extends ConsumerState<_FuelForm> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Kilometrajul curent este obligatoriu')));
       return;
+    }
+    // Realism check — dacă diferența e enormă, întreabă utilizatorul
+    final diff = mileage - selected.mileage;
+    if (diff > 5000) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Verifică kilometrajul'),
+          content: Text(
+              'Ai introdus $mileage km, dar mașina avea ${selected.mileage} km. '
+              'Diferența e ${diff} km — sigur?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(_, false),
+              child: const Text('Corectez'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(_, true),
+              child: const Text('Da, corect'),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
     }
     final f = FuelEntry(
       id: const Uuid().v4(),
@@ -322,14 +350,22 @@ class _FuelFormState extends ConsumerState<_FuelForm> {
       fullTank: _full,
       station: _station.text.trim().isEmpty ? null : _station.text.trim(),
     );
-    await ref.read(fuelProvider.notifier).add(f);
-    if (!mounted) return;
-    // Update vehicle mileage too if the new reading is higher.
-    if (mileage > selected.mileage) {
-      selected.mileage = mileage;
-      await ref.read(vehiclesProvider.notifier).update(selected);
+    try {
+      await ref.read(fuelProvider.notifier).add(f);
+      if (mileage > selected.mileage) {
+        selected.mileage = mileage;
+        await ref.read(vehiclesProvider.notifier).update(selected);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Eroare la salvare: $e')));
+      return;
     }
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Realimentare salvată')));
+    Navigator.pop(context);
   }
 
   @override
@@ -433,6 +469,12 @@ class _FuelFormState extends ConsumerState<_FuelForm> {
                 value: _full,
                 onChanged: (v) => setState(() => _full = v),
                 title: const Text('Plin complet'),
+                subtitle: Text(
+                  'Bifează doar dacă ai făcut plinul la maximum — necesar pentru calcul consum (L/100 km).',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
                 contentPadding: EdgeInsets.zero,
               ),
               const SizedBox(height: 12),

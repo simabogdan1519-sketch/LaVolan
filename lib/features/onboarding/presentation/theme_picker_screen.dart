@@ -34,9 +34,15 @@ class ThemePickerScreen extends ConsumerWidget {
                 _ThemeOption(
                   variant: variant,
                   selected: variant == current,
-                  onTap: () => ref
-                      .read(appSettingsProvider.notifier)
-                      .setThemeVariant(variant),
+                  onTap: () {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setThemeVariant(variant);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Tema ${variant.labelRo} aplicată'),
+                      duration: const Duration(milliseconds: 1400),
+                    ));
+                  },
                 ),
                 const SizedBox(height: 12),
               ],

@@ -135,45 +135,61 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Verifică câmpurile obligatorii')));
+      return;
+    }
     final notifier = ref.read(vehiclesProvider.notifier);
 
     final shouldDeleteOriginalAfterSave =
         _originalPhotoPath != null && _originalPhotoPath != _photoPath;
 
-    if (_existing != null) {
-      _existing!
-        ..brand = _brand.text.trim()
-        ..model = _model.text.trim()
-        ..year = int.tryParse(_year.text.trim()) ?? _existing!.year
-        ..licensePlate = _plate.text.trim().toUpperCase()
-        ..mileage = int.tryParse(_mileage.text.trim()) ?? 0
-        ..fuelType = _fuel
-        ..vin = _vin.text.trim().isEmpty ? null : _vin.text.trim()
-        ..notes = _notes.text.trim().isEmpty ? null : _notes.text.trim()
-        ..photoPath = _photoPath;
-      await notifier.update(_existing!);
-    } else {
-      final v = Vehicle(
-        id: _photoVehicleId,
-        brand: _brand.text.trim(),
-        model: _model.text.trim(),
-        year: int.tryParse(_year.text.trim()) ?? DateTime.now().year,
-        licensePlate: _plate.text.trim().toUpperCase(),
-        fuelType: _fuel,
-        mileage: int.tryParse(_mileage.text.trim()) ?? 0,
-        vin: _vin.text.trim().isEmpty ? null : _vin.text.trim(),
-        notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-        photoPath: _photoPath,
-      );
-      await notifier.add(v);
+    try {
+      if (_existing != null) {
+        _existing!
+          ..brand = _brand.text.trim()
+          ..model = _model.text.trim()
+          ..year = int.tryParse(_year.text.trim()) ?? _existing!.year
+          ..licensePlate = _plate.text.trim().toUpperCase()
+          ..mileage = int.tryParse(_mileage.text.trim()) ?? 0
+          ..fuelType = _fuel
+          ..vin = _vin.text.trim().isEmpty ? null : _vin.text.trim()
+          ..notes = _notes.text.trim().isEmpty ? null : _notes.text.trim()
+          ..photoPath = _photoPath;
+        await notifier.update(_existing!);
+      } else {
+        final v = Vehicle(
+          id: _photoVehicleId,
+          brand: _brand.text.trim(),
+          model: _model.text.trim(),
+          year: int.tryParse(_year.text.trim()) ?? DateTime.now().year,
+          licensePlate: _plate.text.trim().toUpperCase(),
+          fuelType: _fuel,
+          mileage: int.tryParse(_mileage.text.trim()) ?? 0,
+          vin: _vin.text.trim().isEmpty ? null : _vin.text.trim(),
+          notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+          photoPath: _photoPath,
+        );
+        await notifier.add(v);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Eroare la salvare: $e')));
+      return;
     }
 
     if (shouldDeleteOriginalAfterSave) {
       await VehiclePhotoService.instance.delete(_originalPhotoPath);
     }
 
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_existing == null
+            ? 'Vehicul adăugat'
+            : 'Modificări salvate')));
+    Navigator.pop(context);
   }
 
   @override
@@ -198,8 +214,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
             Row(
               children: [
                 Expanded(
-                    child: _field(_year, 'An',
-                        keyboard: TextInputType.number, required: true)),
+                    child: _yearField()),
                 const SizedBox(width: 12),
                 Expanded(
                     child: _field(_mileage, 'Kilometraj',
@@ -251,6 +266,28 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
         validator: required
             ? (v) => (v == null || v.trim().isEmpty) ? 'Obligatoriu' : null
             : null,
+      ),
+    );
+  }
+
+  Widget _yearField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextFormField(
+        controller: _year,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(labelText: 'An'),
+        validator: (v) {
+          final s = v?.trim() ?? '';
+          if (s.isEmpty) return 'Obligatoriu';
+          final n = int.tryParse(s);
+          if (n == null) return 'Doar cifre';
+          final maxYear = DateTime.now().year + 1;
+          if (n < 1900 || n > maxYear) {
+            return 'Între 1900 și $maxYear';
+          }
+          return null;
+        },
       ),
     );
   }

@@ -36,7 +36,8 @@ extension EquipmentTypeInfo on EquipmentType {
     }
   }
 
-  /// Whether this kind of equipment can expire (extinguisher, first-aid kit).
+  /// Whether this kind of equipment can expire (extinguisher needs
+  /// recertification, first-aid kit medicines expire).
   bool get canExpire {
     switch (this) {
       case EquipmentType.extinctor:
@@ -44,6 +45,39 @@ extension EquipmentTypeInfo on EquipmentType {
         return true;
       default:
         return false;
+    }
+  }
+
+  /// Cantitate minimă recomandată/cerută de lege pentru un autoturism.
+  /// Triunghi: 1 (2 pentru remorci/camion). Vestă: minim 1. Roată: 1.
+  int get minRequiredQuantity {
+    switch (this) {
+      case EquipmentType.extinctor:
+      case EquipmentType.trusaMedicala:
+      case EquipmentType.triunghiReflectorizant:
+      case EquipmentType.vestaReflectorizanta:
+      case EquipmentType.rotiRezerva:
+        return 1;
+      case EquipmentType.altul:
+        return 0;
+    }
+  }
+
+  /// Hint scurt afișat sub câmpul cantitate.
+  String get quantityHintRo {
+    switch (this) {
+      case EquipmentType.extinctor:
+        return 'Necesar: minim 1 (recertificat la 5 ani)';
+      case EquipmentType.trusaMedicala:
+        return 'Necesar: minim 1 (medicamentele expiră)';
+      case EquipmentType.triunghiReflectorizant:
+        return 'Necesar: minim 1 (2 pentru remorci/camion)';
+      case EquipmentType.vestaReflectorizanta:
+        return 'Necesar: minim 1 (recomandat câte una per ocupant)';
+      case EquipmentType.rotiRezerva:
+        return 'Recomandat: 1 (roată de rezervă sau kit reparat)';
+      case EquipmentType.altul:
+        return '';
     }
   }
 }
@@ -68,6 +102,8 @@ class EquipmentItem extends HiveObject {
   String? notes;
   @HiveField(8)
   DateTime createdAt;
+  @HiveField(9)
+  int quantity;
 
   EquipmentItem({
     required this.id,
@@ -79,6 +115,7 @@ class EquipmentItem extends HiveObject {
     this.imagePath,
     this.notes,
     DateTime? createdAt,
+    this.quantity = 1,
   }) : createdAt = createdAt ?? DateTime.now();
 
   bool get isExpired =>
@@ -86,4 +123,7 @@ class EquipmentItem extends HiveObject {
 
   int? get daysUntilExpiry =>
       expiryDate?.difference(DateTime.now()).inDays;
+
+  /// Has the user enough of this kind?
+  bool get isQuantityOk => quantity >= type.minRequiredQuantity;
 }

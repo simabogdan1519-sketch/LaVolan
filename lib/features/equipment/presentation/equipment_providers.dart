@@ -20,32 +20,32 @@ class EquipmentNotifier extends StateNotifier<List<EquipmentItem>> {
 
   Future<void> add(EquipmentItem e) async {
     await _repo.add(e);
-    if (e.expiryDate != null) {
-      await NotificationService.instance.scheduleExpiryReminders(
-        baseId: 'equip-${e.id}',
-        title: 'Echipament expiră',
-        body: '${e.type.labelRo} expiră curând',
-        expiry: e.expiryDate!,
-      );
-    }
+    await _scheduleSafely(e);
     state = _repo.getAll();
   }
 
   Future<void> update(EquipmentItem e) async {
     await _repo.update(e);
-    if (e.expiryDate != null) {
-      await NotificationService.instance.scheduleExpiryReminders(
-        baseId: 'equip-${e.id}',
-        title: 'Echipament expiră',
-        body: '${e.type.labelRo} expiră curând',
-        expiry: e.expiryDate!,
-      );
-    }
+    await _scheduleSafely(e);
     state = _repo.getAll();
   }
 
   Future<void> delete(String id) async {
     await _repo.delete(id);
     state = _repo.getAll();
+  }
+
+  Future<void> _scheduleSafely(EquipmentItem e) async {
+    if (e.expiryDate == null) return;
+    try {
+      await NotificationService.instance.scheduleExpiryReminders(
+        baseId: 'equip-${e.id}',
+        title: 'Echipament expiră',
+        body: '${e.type.labelRo} expiră curând',
+        expiry: e.expiryDate!,
+      );
+    } catch (_) {
+      // ignore — saved fine, just no reminders
+    }
   }
 }

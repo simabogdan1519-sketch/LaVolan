@@ -33,13 +33,15 @@ class EquipmentItemAdapter extends TypeAdapter<EquipmentItem> {
       imagePath: f[6] as String?,
       notes: f[7] as String?,
       createdAt: f[8] as DateTime?,
+      // Backward compat: items saved before the quantity field default to 1.
+      quantity: (f[9] as int?) ?? 1,
     );
   }
 
   @override
   void write(BinaryWriter writer, EquipmentItem o) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)..write(o.id)
       ..writeByte(1)..write(o.vehicleId)
       ..writeByte(2)..write(o.type)
@@ -48,6 +50,7 @@ class EquipmentItemAdapter extends TypeAdapter<EquipmentItem> {
       ..writeByte(5)..write(o.brand)
       ..writeByte(6)..write(o.imagePath)
       ..writeByte(7)..write(o.notes)
-      ..writeByte(8)..write(o.createdAt);
+      ..writeByte(8)..write(o.createdAt)
+      ..writeByte(9)..write(o.quantity);
   }
 }

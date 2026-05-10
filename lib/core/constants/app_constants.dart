@@ -24,4 +24,14 @@ class AppConstants {
 
   // Reminder offsets
   static const List<int> reminderDaysBefore = [30, 14, 7, 1];
+
+  // Document validity presets (RO).
+  // RCA — 6 sau 12 luni; ITP — 1 an (mașini >12 ani) sau 2 ani; rovinietă —
+  // 1 zi, 7 zile, 10 zile (turist), 30 zile, 60 zile, 12 luni; buletin —
+  // 10 ani; permis cat. B — 10 ani.
+  static const List<int> rcaValidityMonths = [6, 12];
+  static const List<int> itpValidityMonths = [12, 24];
+  static const List<int> rovinietaValidityDays = [1, 7, 10, 30, 60, 90, 365];
+  static const int buletinValidityYears = 10;
+  static const int permisValidityYears = 10;
 }

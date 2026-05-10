@@ -19,6 +19,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _index = 0;
   bool _busy = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Prepopulează numele dacă userul a mai trecut o dată prin onboarding
+    // (ex. l-a relansat din Settings → "Reia tutorialul").
+    final existing = ref.read(appSettingsProvider).userName;
+    if (existing != null && existing.isNotEmpty) {
+      _nameController.text = existing;
+    }
+  }
+
   static const _pages = [
     _OnboardPageData(
       icon: Icons.directions_car_filled_rounded,

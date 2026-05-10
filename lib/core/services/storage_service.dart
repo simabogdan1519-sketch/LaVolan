@@ -59,4 +59,21 @@ class StorageService {
     await Hive.close();
     _initialized = false;
   }
+
+  /// Șterge tot conținutul aplicației: vehicule, documente, mentenanță,
+  /// realimentări, sancțiuni, echipament, remindere, setări. Folosit pentru
+  /// "Șterge toate datele" din Settings (e.g. când utilizatorul vinde mașina
+  /// sau dă mai departe telefonul).
+  Future<void> clearAllData() async {
+    await Future.wait([
+      vehicles.clear(),
+      documents.clear(),
+      maintenance.clear(),
+      fuel.clear(),
+      penalties.clear(),
+      equipment.clear(),
+      customReminders.clear(),
+      settings.clear(),
+    ]);
+  }
 }

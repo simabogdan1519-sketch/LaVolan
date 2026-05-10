@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/services/attachment_photo_service.dart';
 import '../../../core/services/ocr_service.dart';
 import '../../../core/theme/nimbus_screen.dart';
 import '../../../core/theme/nimbus_widgets.dart';
@@ -308,6 +309,18 @@ class _DocumentResultFormState extends ConsumerState<_DocumentResultForm> {
     final selected = isPersonal ? null : await requireVehicle(context, ref);
     if (!isPersonal && selected == null) return;
 
+    // Poza venită de la camera/OCR e într-un cache temporar — o copiem
+    // în folderul nostru permanent ca să nu dispară.
+    String? persistentPath;
+    if (widget.image != null) {
+      try {
+        persistentPath = await AttachmentPhotoService.instance
+            .storeFromPath(sourcePath: widget.image!.path, scope: 'doc');
+      } catch (_) {
+        // dacă eșuează, salvăm fără poză
+      }
+    }
+
     final doc = VehicleDocument(
       id: const Uuid().v4(),
       vehicleId: selected?.id ?? '_personal_',
@@ -317,7 +330,7 @@ class _DocumentResultFormState extends ConsumerState<_DocumentResultForm> {
       issuer: _issuer.text.trim().isEmpty ? null : _issuer.text.trim(),
       policyNumber:
           _policy.text.trim().isEmpty ? null : _policy.text.trim(),
-      imagePath: widget.image?.path,
+      imagePath: persistentPath,
     );
     try {
       await ref.read(documentsProvider.notifier).add(doc);

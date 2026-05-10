@@ -262,8 +262,18 @@ class _PenaltyFormState extends ConsumerState<_PenaltyForm> {
       location:
           _location.text.trim().isEmpty ? null : _location.text.trim(),
     );
-    await ref.read(penaltyProvider.notifier).add(p);
-    if (mounted) Navigator.pop(context);
+    try {
+      await ref.read(penaltyProvider.notifier).add(p);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Eroare la salvare: $e')));
+      return;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sancțiune salvată')));
+    Navigator.pop(context);
   }
 
   @override
@@ -314,11 +324,33 @@ class _PenaltyFormState extends ConsumerState<_PenaltyForm> {
                 ),
               ),
               const SizedBox(height: 12),
+              Text('Număr puncte',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      )),
+              const SizedBox(height: 6),
+              // Presets uzuale conform Codului Rutier RO (2, 3, 4, 6).
+              // Pentru valori diferite, slider-ul rămâne ca opțiune fallback.
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final n in const [2, 3, 4, 6])
+                    ChoiceChip(
+                      label: Text('$n puncte'),
+                      selected: _points == n,
+                      onSelected: (sel) {
+                        if (sel) setState(() => _points = n);
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
-                    child: Text('Număr puncte: $_points',
-                        style: Theme.of(context).textTheme.titleMedium),
+                    child: Text('Sau custom: $_points',
+                        style: Theme.of(context).textTheme.bodyMedium),
                   ),
                   IconButton(
                     onPressed: _points > 1

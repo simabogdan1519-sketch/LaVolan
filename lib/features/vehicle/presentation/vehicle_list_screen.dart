@@ -33,7 +33,16 @@ class VehicleListScreen extends ConsumerWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (_, i) {
                 final v = vehicles[i];
+                final selectedId = ref.watch(selectedVehicleIdProvider);
+                final isSelected = v.id == selectedId;
                 return GlassCard.heavy(
+                  onTap: () {
+                    ref.read(selectedVehicleIdProvider.notifier).state = v.id;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('${v.displayName} selectat'),
+                      duration: const Duration(milliseconds: 1200),
+                    ));
+                  },
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
@@ -43,10 +52,24 @@ class VehicleListScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(v.displayName,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(v.displayName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium),
+                                ),
+                                if (isSelected) ...[
+                                  const SizedBox(width: 6),
+                                  Icon(Icons.check_circle_rounded,
+                                      size: 18,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary),
+                                ],
+                              ],
+                            ),
                             const SizedBox(height: 2),
                             Text(
                               '${v.licensePlate} · ${v.fuelLabelRo} · ${v.mileage} km',

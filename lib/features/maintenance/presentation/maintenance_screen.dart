@@ -199,13 +199,13 @@ class _MaintenanceFormState extends ConsumerState<_MaintenanceForm> {
     if (!_formKey.currentState!.validate()) return;
     final selected = await requireVehicle(context, ref);
     if (selected == null) return;
+    final mileageInt = int.tryParse(_mileage.text.trim()) ?? selected.mileage;
     final m = MaintenanceEntry(
       id: const Uuid().v4(),
       vehicleId: selected.id,
       category: _cat,
       date: _date,
-      mileageAtService:
-          int.tryParse(_mileage.text.trim()) ?? selected.mileage,
+      mileageAtService: mileageInt,
       cost: double.tryParse(_cost.text.trim()),
       serviceProvider:
           _provider.text.trim().isEmpty ? null : _provider.text.trim(),
@@ -213,8 +213,36 @@ class _MaintenanceFormState extends ConsumerState<_MaintenanceForm> {
       nextDueDate: _nextDate,
       nextDueMileage: int.tryParse(_nextKm.text.trim()),
     );
-    await ref.read(maintenanceProvider.notifier).add(m);
-    if (mounted) Navigator.pop(context);
+    try {
+      await ref.read(maintenanceProvider.notifier).add(m);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Eroare la salvare: $e')));
+      return;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Salvat')));
+    Navigator.pop(context);
+  }
+
+  /// Apelat la schimbarea categoriei — sugerează km/dată următoare bazat
+  /// pe intervalul tipic. Utilizatorul poate suprascrie ulterior.
+  void _applyCategoryDefaults() {
+    final mileageNow = int.tryParse(_mileage.text.trim());
+    final km = _cat.suggestedKmInterval;
+    final days = _cat.suggestedDayInterval;
+    if (km != null && mileageNow != null) {
+      _nextKm.text = (mileageNow + km).toString();
+    } else if (km != null) {
+      _nextKm.text = '';
+    }
+    if (days != null) {
+      _nextDate = _date.add(Duration(days: days));
+    } else {
+      _nextDate = null;
+    }
   }
 
   @override
@@ -254,7 +282,10 @@ class _MaintenanceFormState extends ConsumerState<_MaintenanceForm> {
                     .map((c) => DropdownMenuItem(
                         value: c, child: Text(_categoryLabel(c))))
                     .toList(),
-                onChanged: (v) => setState(() => _cat = v ?? _cat),
+                onChanged: (v) => setState(() {
+                  _cat = v ?? _cat;
+                  _applyCategoryDefaults();
+                }),
               ),
               const SizedBox(height: 12),
               _date_('Data', _date, (d) => setState(() => _date = d)),

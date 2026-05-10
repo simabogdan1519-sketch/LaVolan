@@ -5,11 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/services/app_settings_service.dart';
 import '../../../core/theme/nimbus_tokens.dart';
 import '../../../core/theme/nimbus_widgets.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../documents/domain/document.dart';
 import '../../documents/presentation/document_providers.dart';
+import '../../equipment/domain/equipment_item.dart';
+import '../../equipment/presentation/equipment_providers.dart';
 import '../../fuel/presentation/fuel_providers.dart';
 import '../../maintenance/domain/maintenance_entry.dart';
 import '../../maintenance/presentation/maintenance_providers.dart';
@@ -45,7 +48,18 @@ class DashboardScreen extends ConsumerWidget {
           backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
           appBar: AppBar(
-            title: const Text('LaVolan'),
+            title: Consumer(builder: (_, ref, __) {
+              final name = ref.watch(appSettingsProvider).userName;
+              final hour = DateTime.now().hour;
+              final greeting = hour < 12
+                  ? 'Bună dimineața'
+                  : hour < 18
+                      ? 'Bună'
+                      : 'Bună seara';
+              return Text(name == null || name.isEmpty
+                  ? 'LaVolan'
+                  : '$greeting, $name');
+            }),
             actions: [
               IconButton(
                 tooltip: 'Setări',
@@ -75,6 +89,8 @@ class DashboardScreen extends ConsumerWidget {
                 _QuickActions(),
                 const SizedBox(height: 18),
                 _NextDocumentCard(),
+                const SizedBox(height: 14),
+                _EquipmentCard(),
                 const SizedBox(height: 14),
                 _PenaltyCard(),
                 const SizedBox(height: 14),
@@ -700,6 +716,99 @@ class _MaintenanceCard extends ConsumerWidget {
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color:
                               Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded),
+        ],
+      ),
+    );
+  }
+}
+
+// ────────────────────────── Equipment card ──────────────────────────
+
+class _EquipmentCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final all = ref.watch(equipmentProvider);
+    final t = Theme.of(context).extension<NimbusTokens>()!;
+    final cs = Theme.of(context).colorScheme;
+
+    // Pentru fiecare tip relevant verificăm cantitate + expirare.
+    const relevantTypes = [
+      EquipmentType.extinctor,
+      EquipmentType.trusaMedicala,
+      EquipmentType.triunghiReflectorizant,
+      EquipmentType.vestaReflectorizanta,
+      EquipmentType.rotiRezerva,
+    ];
+
+    final issues = <String>[];
+    int expiringSoonCount = 0;
+    for (final type in relevantTypes) {
+      final items = all.where((e) => e.type == type).toList();
+      final qty = items.fold<int>(0, (s, it) => s + it.quantity);
+      if (qty < type.minRequiredQuantity) {
+        issues.add(type.labelRo);
+        continue;
+      }
+      if (type.canExpire) {
+        for (final i in items) {
+          if (i.isExpired) {
+            issues.add('${type.labelRo} expirat');
+          } else if (i.daysUntilExpiry != null &&
+              i.daysUntilExpiry! <= 30) {
+            expiringSoonCount++;
+          }
+        }
+      }
+    }
+
+    final ok = issues.isEmpty;
+    final color = ok
+        ? (expiringSoonCount > 0 ? t.risk.warn : t.risk.safe)
+        : t.risk.critical;
+
+    return GlassCard.heavy(
+      onTap: () => Navigator.pushNamed(context, AppRouter.equipment),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.fire_extinguisher_outlined, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Eyebrow('Echipament', color: color),
+                const SizedBox(height: 4),
+                Text(
+                  ok
+                      ? (expiringSoonCount > 0
+                          ? 'Expiră curând: $expiringSoonCount'
+                          : 'Totul în regulă')
+                      : 'Lipsuri: ${issues.length}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                if (issues.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    issues.join(' · '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
                         ),
                   ),
                 ],

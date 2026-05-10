@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/app_settings_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/theme/nimbus_widgets.dart';
 import '../../../infra/home_assistant/home_assistant_service.dart';
 
@@ -169,6 +170,17 @@ class SettingsScreen extends ConsumerWidget {
                 },
               ),
               const Divider(height: 0),
+              ListTile(
+                leading: Icon(Icons.delete_forever_rounded,
+                    color: Theme.of(context).colorScheme.error),
+                title: Text('Șterge toate datele',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.error)),
+                subtitle: const Text(
+                    'Vehicule, documente, poze, setări — totul'),
+                onTap: () => _confirmWipe(context, ref),
+              ),
+              const Divider(height: 0),
               const ListTile(
                 leading: Icon(Icons.info_outline_rounded),
                 title: Text('LaVolan'),
@@ -179,6 +191,39 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _confirmWipe(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Șterge tot?'),
+        content: const Text(
+            'Toate datele dispar definitiv: vehicule, documente, poze, mentenanță, '
+            'realimentări, sancțiuni, echipament, remindere și setări.\n\n'
+            'Acțiunea NU poate fi anulată.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(_, false),
+              child: const Text('Anulează')),
+          FilledButton(
+              style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Theme.of(context).colorScheme.onError),
+              onPressed: () => Navigator.pop(_, true),
+              child: const Text('Șterge tot')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    if (!context.mounted) return;
+    try {
+      await StorageService.instance.clearAllData();
+      await NotificationService.instance.cancelAll();
+    } catch (_) {}
+    if (!context.mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRouter.onboarding, (_) => false);
   }
 }
 

@@ -75,3 +75,67 @@ class MaintenanceEntry extends HiveObject {
     }
   }
 }
+
+/// Intervale recomandate pentru "next due" (cât durează tipic înainte
+/// să trebuiască refăcut). Folosit ca preset-uri în form, ca utilizatorul
+/// să nu trebuiască să țină minte.
+extension MaintenanceCategoryDefaults on MaintenanceCategory {
+  /// Kilometri sugerați până la următoarea intervenție.
+  int? get suggestedKmInterval {
+    switch (this) {
+      case MaintenanceCategory.ulei:
+        return 15000;
+      case MaintenanceCategory.filtre:
+        return 30000;
+      case MaintenanceCategory.placute:
+        return 40000;
+      case MaintenanceCategory.anvelope:
+        return 50000;
+      case MaintenanceCategory.baterie:
+        return null; // fără limită km
+      case MaintenanceCategory.revizie:
+        return 15000;
+      case MaintenanceCategory.altele:
+        return null;
+    }
+  }
+
+  /// Zile sugerate până la următoarea intervenție.
+  int? get suggestedDayInterval {
+    switch (this) {
+      case MaintenanceCategory.ulei:
+        return 365;
+      case MaintenanceCategory.filtre:
+        return 365 * 2;
+      case MaintenanceCategory.placute:
+        return null;
+      case MaintenanceCategory.anvelope:
+        return null;
+      case MaintenanceCategory.baterie:
+        return 365 * 5;
+      case MaintenanceCategory.revizie:
+        return 365;
+      case MaintenanceCategory.altele:
+        return null;
+    }
+  }
+
+  String get labelRo {
+    switch (this) {
+      case MaintenanceCategory.ulei:
+        return 'Schimb ulei';
+      case MaintenanceCategory.filtre:
+        return 'Filtre';
+      case MaintenanceCategory.placute:
+        return 'Plăcuțe frână';
+      case MaintenanceCategory.anvelope:
+        return 'Anvelope';
+      case MaintenanceCategory.baterie:
+        return 'Baterie';
+      case MaintenanceCategory.revizie:
+        return 'Revizie';
+      case MaintenanceCategory.altele:
+        return 'Altele';
+    }
+  }
+}
