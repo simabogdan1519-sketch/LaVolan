@@ -14,6 +14,29 @@ enum DocumentType {
   talon,
   @HiveField(4)
   altul,
+  @HiveField(5)
+  buletin,
+  @HiveField(6)
+  permis,
+}
+
+extension DocumentTypeKind on DocumentType {
+  /// Whether this document belongs to a vehicle (as opposed to a person).
+  bool get isVehicleDocument {
+    switch (this) {
+      case DocumentType.buletin:
+      case DocumentType.permis:
+        return false;
+      case DocumentType.rca:
+      case DocumentType.itp:
+      case DocumentType.rovinieta:
+      case DocumentType.talon:
+      case DocumentType.altul:
+        return true;
+    }
+  }
+
+  bool get isPersonalDocument => !isVehicleDocument;
 }
 
 enum DocumentStatus { valid, expiringSoon, expired }
@@ -79,6 +102,10 @@ class VehicleDocument extends HiveObject {
         return 'Talon';
       case DocumentType.altul:
         return 'Altul';
+      case DocumentType.buletin:
+        return 'Buletin';
+      case DocumentType.permis:
+        return 'Permis';
     }
   }
 }

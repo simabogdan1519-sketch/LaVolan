@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/nimbus_screen.dart';
+import '../../../core/theme/nimbus_tokens.dart';
+import '../../../core/theme/nimbus_widgets.dart';
 import '../../../core/utils/date_utils.dart';
 import '../data/penalty_repository.dart';
 import '../domain/penalty_entry.dart';
@@ -15,44 +18,63 @@ class PenaltyScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(penaltyStatsProvider);
     final all = ref.watch(penaltyProvider);
-    return Scaffold(
+    return NimbusScreen(
       appBar: AppBar(title: const Text('Puncte permis')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _BigPointsCard(stats: stats),
-          const SizedBox(height: 8),
-          _DisclaimerCard(),
-          const SizedBox(height: 16),
-          Text('Istoric',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          if (all.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Niciun punct înregistrat. Bună treabă! 🎉'),
-              ),
-            ),
-          for (final p in all) _PenaltyTile(entry: p),
-          const SizedBox(height: 80),
-        ],
-      ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (_) => Padding(
-            padding:
-                EdgeInsets.only(bottom: MediaQuery.of(_).viewInsets.bottom),
-            child: const _PenaltyForm(),
-          ),
-        ),
+        onPressed: () => _openSheet(context),
         icon: const Icon(Icons.add),
         label: const Text('Adaugă'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+        children: [
+          _BigPointsCard(stats: stats),
+          const SizedBox(height: 12),
+          const _DisclaimerCard(),
+          const SizedBox(height: 20),
+          Text('Istoric',
+              style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          if (all.isEmpty)
+            GlassCard.heavy(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Icon(Icons.celebration_rounded,
+                      color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Niciun punct înregistrat. Bună treabă!',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            for (final p in all) ...[
+              _PenaltyTile(entry: p),
+              const SizedBox(height: 10),
+            ],
+        ],
+      ),
+    );
+  }
+
+  void _openSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(_).viewInsets.bottom,
+          left: 12,
+          right: 12,
+          top: 12,
+        ),
+        child: const _PenaltyForm(),
       ),
     );
   }
@@ -64,100 +86,84 @@ class _BigPointsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color;
-    String label;
-    switch (stats.risk) {
-      case PenaltyRiskLevel.safe:
-        color = Colors.green;
-        label = 'Sigur';
-        break;
-      case PenaltyRiskLevel.caution:
-        color = Colors.orange;
-        label = 'Atenție';
-        break;
-      case PenaltyRiskLevel.warning:
-        color = Colors.deepOrange;
-        label = 'Risc ridicat';
-        break;
-      case PenaltyRiskLevel.critical:
-        color = Colors.red;
-        label = 'Risc suspendare';
-        break;
-    }
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Puncte active',
-                style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${stats.activePoints}',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.w800, color: color),
-                ),
-                const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text('/ ${AppConstants.penaltyMaxBeforeSuspension}',
-                      style: Theme.of(context).textTheme.titleLarge),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(label,
-                      style: TextStyle(
-                          color: color, fontWeight: FontWeight.w700)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: (stats.activePoints / AppConstants.penaltyMaxBeforeSuspension)
-                    .clamp(0.0, 1.0),
-                minHeight: 8,
-                color: color,
-                backgroundColor: color.withOpacity(0.15),
+    final t = Theme.of(context).extension<NimbusTokens>()!;
+    final color = t.riskColor(points: stats.activePoints);
+    final tier = t.riskTier(points: stats.activePoints);
+    final progress =
+        (stats.activePoints / AppConstants.penaltyMaxBeforeSuspension)
+            .clamp(0.0, 1.0);
+
+    return GlassCard.heavy(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Eyebrow('Puncte active', color: color),
+              RiskPill(tier: tier, label: tier.labelRo),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${stats.activePoints}',
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                      color: color,
+                    ),
               ),
+              const SizedBox(width: 6),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  '/ ${AppConstants.penaltyMaxBeforeSuspension}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color:
+                            Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              valueColor: AlwaysStoppedAnimation(color),
+              backgroundColor: Colors.white.withOpacity(0.10),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _DisclaimerCard extends StatelessWidget {
+  const _DisclaimerCard();
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      color: scheme.surfaceContainerLow,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            const Icon(Icons.info_outline_rounded, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Datele sunt introduse manual. Aplicația NU se conectează la baza oficială IGPR.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+    return GlassCard.light(
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline_rounded,
+              size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Datele sunt introduse manual. Aplicația NU se conectează la baza oficială IGPR.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -169,29 +175,55 @@ class _PenaltyTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
+    final t = Theme.of(context).extension<NimbusTokens>()!;
     final active = entry.isActive;
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: (active ? scheme.error : scheme.outline)
-              .withOpacity(0.15),
-          child: Text('${entry.points}',
-              style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: active ? scheme.error : scheme.outline)),
-        ),
-        title: Text(entry.reason ?? 'Sancțiune',
-            style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(
-          active
-              ? '${DateUtilsRo.short(entry.date)} · expiră ${DateUtilsRo.short(entry.expiresOn)}'
-              : 'Expirat ${DateUtilsRo.short(entry.expiresOn)}',
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline_rounded),
-          onPressed: () => ref.read(penaltyProvider.notifier).delete(entry.id),
-        ),
+    final accent = active ? t.risk.warn : Theme.of(context).colorScheme.outline;
+    return GlassCard.heavy(
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: accent.withOpacity(0.4), width: 1),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '${entry.points}',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(entry.reason ?? 'Sancțiune',
+                    style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 2),
+                Text(
+                  active
+                      ? '${DateUtilsRo.short(entry.date)} · expiră ${DateUtilsRo.short(entry.expiresOn)}'
+                      : 'Expirat ${DateUtilsRo.short(entry.expiresOn)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded),
+            onPressed: () =>
+                ref.read(penaltyProvider.notifier).delete(entry.id),
+          ),
+        ],
       ),
     );
   }
@@ -211,6 +243,14 @@ class _PenaltyFormState extends ConsumerState<_PenaltyForm> {
   final _fine = TextEditingController();
   final _location = TextEditingController();
 
+  @override
+  void dispose() {
+    _reason.dispose();
+    _fine.dispose();
+    _location.dispose();
+    super.dispose();
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final p = PenaltyEntry(
@@ -228,79 +268,98 @@ class _PenaltyFormState extends ConsumerState<_PenaltyForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return GlassCard.ultra(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Adaugă puncte',
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: () async {
-                final p = await showDatePicker(
-                  context: context,
-                  initialDate: _date,
-                  firstDate: DateTime(2010),
-                  lastDate: DateTime.now(),
-                  locale: const Locale('ro', 'RO'),
-                );
-                if (p != null) setState(() => _date = p);
-              },
-              child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'Data sancțiunii'),
-                child: Text(DateUtilsRo.short(_date)),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 4),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Text('Număr puncte: $_points',
-                      style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 16),
+              Text('Adaugă puncte',
+                  style: Theme.of(context).textTheme.titleLarge,
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: () async {
+                  final p = await showDatePicker(
+                    context: context,
+                    initialDate: _date,
+                    firstDate: DateTime(2010),
+                    lastDate: DateTime.now(),
+                    locale: const Locale('ro', 'RO'),
+                  );
+                  if (p != null) setState(() => _date = p);
+                },
+                child: InputDecorator(
+                  decoration:
+                      const InputDecoration(labelText: 'Data sancțiunii'),
+                  child: Text(DateUtilsRo.short(_date)),
                 ),
-                IconButton(
-                  onPressed: _points > 1
-                      ? () => setState(() => _points--)
-                      : null,
-                  icon: const Icon(Icons.remove_circle_outline),
-                ),
-                IconButton(
-                  onPressed: _points < 9
-                      ? () => setState(() => _points++)
-                      : null,
-                  icon: const Icon(Icons.add_circle_outline),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _reason,
-              decoration:
-                  const InputDecoration(labelText: 'Motiv (opțional)'),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _fine,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Amendă (lei)'),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _location,
-              decoration: const InputDecoration(labelText: 'Locație'),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _save,
-              icon: const Icon(Icons.save_rounded),
-              label: const Text('Salvează'),
-            ),
-            const SizedBox(height: 8),
-          ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Număr puncte: $_points',
+                        style: Theme.of(context).textTheme.titleMedium),
+                  ),
+                  IconButton(
+                    onPressed: _points > 1
+                        ? () => setState(() => _points--)
+                        : null,
+                    icon: const Icon(Icons.remove_circle_outline),
+                  ),
+                  IconButton(
+                    onPressed: _points < 9
+                        ? () => setState(() => _points++)
+                        : null,
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _reason,
+                decoration:
+                    const InputDecoration(labelText: 'Motiv (opțional)'),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _fine,
+                keyboardType: TextInputType.number,
+                decoration:
+                    const InputDecoration(labelText: 'Amendă (lei)'),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _location,
+                decoration: const InputDecoration(labelText: 'Locație'),
+              ),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: _save,
+                icon: const Icon(Icons.save_rounded),
+                label: const Text('Salvează'),
+              ),
+            ],
+          ),
         ),
       ),
     );

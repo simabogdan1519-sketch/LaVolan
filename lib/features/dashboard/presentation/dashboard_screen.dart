@@ -450,6 +450,10 @@ class _NextDocumentCard extends ConsumerWidget {
         return 'Talon';
       case DocumentType.altul:
         return 'Document';
+      case DocumentType.buletin:
+        return 'Buletin';
+      case DocumentType.permis:
+        return 'Permis';
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/theme/nimbus_screen.dart';
 import '../data/vehicle_photo_service.dart';
 import '../domain/vehicle.dart';
 import 'vehicle_providers.dart';
@@ -177,7 +178,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return NimbusScreen(
       appBar: AppBar(
         title: Text(_existing == null ? 'Adaugă vehicul' : 'Editează vehicul'),
       ),
@@ -288,11 +289,11 @@ class _PhotoPicker extends StatelessWidget {
             height: 132,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: cs.surfaceContainerHighest,
-              border: Border.all(color: cs.outlineVariant, width: 2),
+              color: Colors.white.withOpacity(0.1),
+              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: cs.shadow.withOpacity(0.08),
+                  color: cs.shadow.withOpacity(0.18),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),

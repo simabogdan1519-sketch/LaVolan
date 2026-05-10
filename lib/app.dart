@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
+import 'core/services/app_settings_service.dart';
 import 'core/theme/app_theme.dart';
 
 class LaVolanApp extends ConsumerWidget {
@@ -10,11 +11,12 @@ class LaVolanApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(appSettingsProvider);
     return MaterialApp(
       title: 'LaVolan',
       debugShowCheckedModeBanner: false,
-      theme: NimbusTheme.light(),
-      darkTheme: NimbusTheme.dark(),
+      theme: NimbusTheme.light(settings.themeVariant),
+      darkTheme: NimbusTheme.dark(settings.themeVariant),
       themeMode: ThemeMode.dark,
       locale: const Locale('ro', 'RO'),
       supportedLocales: const [
@@ -27,7 +29,8 @@ class LaVolanApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       onGenerateRoute: AppRouter.onGenerateRoute,
-      initialRoute: AppRouter.dashboard,
+      initialRoute:
+          settings.hasOnboarded ? AppRouter.dashboard : AppRouter.onboarding,
     );
   }
 }

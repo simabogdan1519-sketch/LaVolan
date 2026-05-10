@@ -9,6 +9,8 @@ class AppConstants {
   static const String fuelBox = 'fuel_box';
   static const String penaltyBox = 'penalty_box';
   static const String reminderBox = 'reminders_box';
+  static const String equipmentBox = 'equipment_box';
+  static const String customReminderBox = 'custom_reminders_box';
   static const String settingsBox = 'settings_box';
 
   // Notification channels
