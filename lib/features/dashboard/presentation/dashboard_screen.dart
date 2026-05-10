@@ -24,6 +24,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vehicles = ref.watch(vehiclesProvider);
+    final selected = ref.watch(selectedVehicleProvider);
 
     if (vehicles.isEmpty) {
       return Stack(
