@@ -3,38 +3,52 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/storage_service.dart';
 
-/// Visual theme variants. Each one swaps colors, fonts, glass behavior.
+/// Visual theme variants. Each one swaps colors, fonts, radii, chrome.
 enum AppThemeVariant {
-  /// Default — neutral, mesh-dynamic per vehicle.
-  nimbus,
+  /// Roz drăguț + serif italic, accente aurii. Light.
+  blush,
 
-  /// Soft, warm pastels — coral / lavender / cream. Friendlier feel.
-  bloom,
+  /// OLED dark, accent verde-neon, vibe tech.
+  midnight,
 
-  /// Industrial — deep charcoal, copper accents, monospaced numbers.
-  garage,
+  /// Earthy, serif Lora, paletă măslinie. Light.
+  olive,
+
+  /// Sport, Bebas Neue uppercase, roșu Ferrari. Dark.
+  carbon,
+
+  /// Pastel rotunjit, aerisit, breezy. Light.
+  mint,
 }
 
 extension AppThemeVariantInfo on AppThemeVariant {
   String get labelRo => switch (this) {
-        AppThemeVariant.nimbus => 'Nimbus',
-        AppThemeVariant.bloom => 'Bloom',
-        AppThemeVariant.garage => 'Garage',
+        AppThemeVariant.blush => 'Blush',
+        AppThemeVariant.midnight => 'Midnight',
+        AppThemeVariant.olive => 'Olive & Cream',
+        AppThemeVariant.carbon => 'Carbon Racing',
+        AppThemeVariant.mint => 'Sky Mint',
       };
 
   String get descriptionRo => switch (this) {
-        AppThemeVariant.nimbus =>
-          'Default. Mesh dinamic, accente mint, paletă rece.',
-        AppThemeVariant.bloom =>
-          'Pasteluri calde, coral și lavandă. Mai jucăuș.',
-        AppThemeVariant.garage =>
-          'Industrial, accente cupru, cifre monospace. Auto.',
+        AppThemeVariant.blush =>
+          'Roz pal cu serif italic și accente aurii. Light.',
+        AppThemeVariant.midnight =>
+          'OLED negru cu verde-neon. Tech, contrast mare.',
+        AppThemeVariant.olive =>
+          'Crem și măsliniu, serif Lora. Earthy, calm.',
+        AppThemeVariant.carbon =>
+          'Sport. Bebas Neue uppercase, roșu de cursă.',
+        AppThemeVariant.mint =>
+          'Pastel mint, rotunjit, aerisit. Light.',
       };
 
   IconData get iconData => switch (this) {
-        AppThemeVariant.nimbus => Icons.cloud_outlined,
-        AppThemeVariant.bloom => Icons.local_florist_outlined,
-        AppThemeVariant.garage => Icons.build_outlined,
+        AppThemeVariant.blush => Icons.favorite_border_rounded,
+        AppThemeVariant.midnight => Icons.nightlight_round,
+        AppThemeVariant.olive => Icons.eco_outlined,
+        AppThemeVariant.carbon => Icons.speed_rounded,
+        AppThemeVariant.mint => Icons.water_drop_outlined,
       };
 }
 
@@ -68,10 +82,10 @@ class AppSettingsService {
 
   AppThemeVariant get themeVariant {
     final raw = StorageService.instance.settings
-        .get(_kThemeVariant, defaultValue: AppThemeVariant.nimbus.name) as String;
+        .get(_kThemeVariant, defaultValue: AppThemeVariant.midnight.name) as String;
     return AppThemeVariant.values.firstWhere(
       (v) => v.name == raw,
-      orElse: () => AppThemeVariant.nimbus,
+      orElse: () => AppThemeVariant.midnight,
     );
   }
 

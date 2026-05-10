@@ -254,16 +254,18 @@ class _InfoPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Spacer(),
-          Container(
-            width: 92,
-            height: 92,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: cs.primary.withOpacity(0.18),
-              border: Border.all(
-                  color: cs.primary.withOpacity(0.4), width: 1.5),
+          Center(
+            child: Container(
+              width: 92,
+              height: 92,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: cs.primary.withOpacity(0.18),
+                border: Border.all(
+                    color: cs.primary.withOpacity(0.4), width: 1.5),
+              ),
+              child: Icon(data.icon, size: 44, color: cs.primary),
             ),
-            child: Icon(data.icon, size: 44, color: cs.primary),
           ),
           const SizedBox(height: 28),
           Eyebrow(data.eyebrow, color: cs.primary),
@@ -297,16 +299,18 @@ class _ConfigPage extends StatelessWidget {
       child: ListView(
         children: [
           const SizedBox(height: 16),
-          Container(
-            width: 92,
-            height: 92,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: cs.primary.withOpacity(0.18),
-              border: Border.all(
-                  color: cs.primary.withOpacity(0.4), width: 1.5),
+          Center(
+            child: Container(
+              width: 92,
+              height: 92,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: cs.primary.withOpacity(0.18),
+                border: Border.all(
+                    color: cs.primary.withOpacity(0.4), width: 1.5),
+              ),
+              child: Icon(Icons.tune_rounded, size: 44, color: cs.primary),
             ),
-            child: Icon(Icons.tune_rounded, size: 44, color: cs.primary),
           ),
           const SizedBox(height: 24),
           Eyebrow('Configurare rapidă', color: cs.primary),
@@ -315,7 +319,7 @@ class _ConfigPage extends StatelessWidget {
               style: Theme.of(context).textTheme.displaySmall),
           const SizedBox(height: 12),
           Text(
-            'Cum te chemi? (opțional, doar local)',
+            'Cum vrei să-ți spunem? (opțional, rămâne pe telefonul tău)',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: cs.onSurfaceVariant,
                 ),

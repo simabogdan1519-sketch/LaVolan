@@ -95,19 +95,22 @@ class NimbusTokens extends ThemeExtension<NimbusTokens> {
 
       glass: NimbusGlassScale(
         // Alpha-ul peste mesh; sigma = blur radius pentru ImageFilter.blur.
+        // În light mode glass-ul folosește alb peste mesh-ul colorat — în
+        // dark, tot alb dar cu opacitate mai mică. Funcționează în ambele
+        // pentru că mesh-ul e mereu colorat (nu alb).
         light: NimbusGlassLayer(
-          fill: (isDark ? Colors.white : Colors.white).withOpacity(0.10),
-          insetHighlight: (isDark ? Colors.white : Colors.white).withOpacity(0.20),
+          fill: Colors.white.withOpacity(isDark ? 0.10 : 0.55),
+          insetHighlight: Colors.white.withOpacity(isDark ? 0.20 : 0.65),
           blurSigma: 18,
         ),
         heavy: NimbusGlassLayer(
-          fill: (isDark ? Colors.white : Colors.white).withOpacity(0.16),
-          insetHighlight: (isDark ? Colors.white : Colors.white).withOpacity(0.35),
+          fill: Colors.white.withOpacity(isDark ? 0.16 : 0.70),
+          insetHighlight: Colors.white.withOpacity(isDark ? 0.35 : 0.85),
           blurSigma: 30,
         ),
         ultra: NimbusGlassLayer(
-          fill: (isDark ? Colors.white : Colors.white).withOpacity(0.22),
-          insetHighlight: (isDark ? Colors.white : Colors.white).withOpacity(0.45),
+          fill: Colors.white.withOpacity(isDark ? 0.22 : 0.85),
+          insetHighlight: Colors.white.withOpacity(isDark ? 0.45 : 0.92),
           blurSigma: 42,
         ),
       ),

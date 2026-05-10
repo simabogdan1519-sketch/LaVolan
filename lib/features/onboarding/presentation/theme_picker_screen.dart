@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/app_settings_service.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/nimbus_tokens.dart';
 import '../../../core/theme/nimbus_widgets.dart';
 import '../../../core/theme/theme_variants.dart';
@@ -70,7 +71,11 @@ class _ThemeOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = ThemeVariantPalette.of(variant);
-    final scheme = palette.darkScheme;
+    // Folosim scheme-ul potrivit pentru fiecare temă (light pentru
+    // Blush/Olive/Mint, dark pentru Midnight/Carbon).
+    final scheme = NimbusTheme.themeModeFor(variant) == ThemeMode.light
+        ? palette.lightScheme
+        : palette.darkScheme;
 
     return GlassCard.heavy(
       onTap: onTap,

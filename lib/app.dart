@@ -17,7 +17,7 @@ class LaVolanApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: NimbusTheme.light(settings.themeVariant),
       darkTheme: NimbusTheme.dark(settings.themeVariant),
-      themeMode: ThemeMode.dark,
+      themeMode: NimbusTheme.themeModeFor(settings.themeVariant),
       locale: const Locale('ro', 'RO'),
       supportedLocales: const [
         Locale('ro', 'RO'),
