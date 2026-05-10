@@ -99,32 +99,37 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.directions_car_filled_rounded,
-                size: 96, color: cs.onSurface.withOpacity(0.7)),
-            const SizedBox(height: 16),
-            Text('Bun venit la LaVolan',
-                style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 6),
-            Text(
-              'Adaugă primul vehicul ca să începi.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurfaceVariant,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 28),
-            FilledButton.icon(
-              onPressed: () =>
-                  Navigator.pushNamed(context, AppRouter.vehicleForm),
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('Adaugă vehicul'),
-            ),
-          ],
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.directions_car_filled_rounded,
+                  size: 96, color: cs.onSurface.withOpacity(0.7)),
+              const SizedBox(height: 16),
+              Text('Bun venit la LaVolan',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 6),
+              Text(
+                'Adaugă primul vehicul ca să începi.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+              FilledButton.icon(
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRouter.vehicleForm),
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Adaugă vehicul'),
+              ),
+            ],
+          ),
         ),
       ),
     );

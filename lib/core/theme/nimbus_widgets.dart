@@ -224,11 +224,11 @@ class GlassCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: tinted ?? layer.fill,
             borderRadius: radius,
+            // Border-ul jos servește și ca "shine" subtil sus prin border-ul
+            // glass; am scos BoxShadow cu BlurStyle.inner care, pe
+            // Impeller (Flutter 3.24+ Android), pictează un overlay opac
+            // peste copii și blochează tap-urile pe butoanele din card.
             border: Border.all(color: t.borderGlass, width: 0.5),
-            // shine inset 1px sus — îl simulăm cu un BoxShadow inset alb
-            boxShadow: [
-              BoxShadow(color: layer.insetHighlight, offset: const Offset(0, 1), blurRadius: 0, spreadRadius: -0.5, blurStyle: BlurStyle.inner),
-            ],
           ),
           child: Padding(padding: padding, child: child),
         ),
