@@ -39,11 +39,11 @@ android/app/debug
 android/app/profile
 android/app/release
 android/local.properties
-android/key.properties
-android/keystore/
-*.jks
-*.keystore
 android/.cxx/
+
+# NOTĂ: android/key.properties și android/keystore/release.jks SUNT
+# intenționat NE-excluse — sunt incluse în repo ca build-ul de release
+# să meargă out-of-the-box (vezi README).
 
 # iOS
 ios/Pods/
