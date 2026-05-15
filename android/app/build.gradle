@@ -22,11 +22,18 @@ if (flutterVersionName == null) {
     flutterVersionName = "1.0.0"
 }
 
-// Optional release signing via android/key.properties
+// Release signing — credentialele sunt în android/key.properties.
+// rootProject.projectDir == android/ (în Flutter), deci căutăm acolo.
+def keystorePropertiesFile = new File(rootProject.projectDir, "key.properties")
 def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file("key.properties")
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+def hasReleaseKeystore = keystorePropertiesFile.exists()
+if (hasReleaseKeystore) {
+    keystorePropertiesFile.withInputStream { stream ->
+        keystoreProperties.load(stream)
+    }
+    println "✓ Release keystore configured from: ${keystorePropertiesFile.absolutePath}"
+} else {
+    println "⚠ No android/key.properties found at ${keystorePropertiesFile.absolutePath} — release build will fail."
 }
 
 android {
@@ -57,11 +64,20 @@ android {
 
     signingConfigs {
         release {
-            if (keystorePropertiesFile.exists()) {
-                keyAlias keystoreProperties["keyAlias"]
-                keyPassword keystoreProperties["keyPassword"]
-                storeFile keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
-                storePassword keystoreProperties["storePassword"]
+            if (hasReleaseKeystore) {
+                def storeFilePath = keystoreProperties.getProperty("storeFile")
+                // storeFile path is relative to android/ (the project dir).
+                // Resolve it explicitly so AGP always gets an absolute file.
+                def resolvedStoreFile = new File(rootProject.projectDir, storeFilePath)
+                if (!resolvedStoreFile.exists()) {
+                    // try as-is in case the user wrote an absolute path
+                    resolvedStoreFile = file(storeFilePath)
+                }
+                println "  signing storeFile = ${resolvedStoreFile.absolutePath} (exists: ${resolvedStoreFile.exists()})"
+                storeFile resolvedStoreFile
+                storePassword keystoreProperties.getProperty("storePassword")
+                keyAlias keystoreProperties.getProperty("keyAlias")
+                keyPassword keystoreProperties.getProperty("keyPassword")
             }
         }
     }
@@ -69,7 +85,7 @@ android {
     buildTypes {
         release {
             // Keystore-ul de release e în repo (android/keystore/release.jks)
-            // cu credentialele în android/key.properties — vezi mai sus.
+            // cu credentialele în android/key.properties.
             signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
