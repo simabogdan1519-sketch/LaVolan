@@ -37,7 +37,7 @@ if (hasReleaseKeystore) {
 }
 
 android {
-    namespace = "ro.simabogdan.lavolan"
+    namespace = "ro.lavolan.app"
     compileSdk = 35
     // Highest NDK required by any plugin (camera, mlkit, workmanager, etc.).
     // Backward-compatible per AGP guidance.
@@ -54,7 +54,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "ro.simabogdan.lavolan"
+        applicationId = "ro.lavolan.app"
         minSdk = 23
         targetSdk = 35
         versionCode = flutterVersionCode.toInteger()
