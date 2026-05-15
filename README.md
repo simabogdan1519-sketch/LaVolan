@@ -90,15 +90,32 @@ Outputs:
 - `build/app/outputs/flutter-apk/app-release.apk`
 - `build/app/outputs/bundle/release/app-release.aab`
 
-### Release signing (optional)
-Create `android/key.properties` (gitignored):
-```properties
-storeFile=keystore/release.jks
-storePassword=YOUR_STORE_PASSWORD
-keyAlias=YOUR_KEY_ALIAS
-keyPassword=YOUR_KEY_PASSWORD
+### Release signing
+
+Keystore-ul de release e **în repo** (`android/keystore/release.jks`) cu
+credentialele în `android/key.properties`. Nu trebuie setup manual —
+poți face direct:
+
+```bash
+flutter build apk --release
+flutter build appbundle --release
 ```
-…and place your keystore at `android/keystore/release.jks`. If absent, builds fall back to the debug keystore.
+
+Outputs:
+- `build/app/outputs/flutter-apk/app-release.apk`
+- `build/app/outputs/bundle/release/app-release.aab`
+
+⚠️ **Atenție**: dacă faci fork sau public repo-ul, **schimbă keystore-ul
+și parolele** — orice are acces la `release.jks` poate publica update-uri
+la app-ul tău pe Google Play. Pentru un release "serios", generează-ți
+propriul keystore:
+
+```bash
+keytool -genkey -v -keystore android/keystore/release.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 -alias lavolan
+```
+
+…apoi update-ează parolele în `android/key.properties`.
 
 ---
 

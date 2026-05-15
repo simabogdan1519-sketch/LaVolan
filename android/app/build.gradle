@@ -68,9 +68,9 @@ android {
 
     buildTypes {
         release {
-            // If a release keystore is configured, sign with it.
-            // Otherwise fall back to debug signing so CI builds still produce installable APKs.
-            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
+            // Keystore-ul de release e în repo (android/keystore/release.jks)
+            // cu credentialele în android/key.properties — vezi mai sus.
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"

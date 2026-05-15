@@ -1,0 +1,12 @@
+# Build outputs
+**/build/
+**/.gradle/
+.gradle/
+
+# IDE
+local.properties
+.idea/
+*.iml
+
+# NOTE: key.properties și keystore/release.jks SUNT in git intenționat
+# pentru acest repo. Dacă faci fork, înlocuiește-le cu ale tale.

@@ -64,38 +64,9 @@ jobs:
           echo "Building LaVolan ${PUBSPEC_VERSION}+${BUILD_NUMBER}"
 
       # ---------------------------------------------------------------
-      # OPTIONAL: signing configuration via GitHub Secrets.
-      # If KEYSTORE_BASE64 is not set, build produces an unsigned debug-keystore APK.
-      # To enable release signing, add these secrets to the repo:
-      #   - KEYSTORE_BASE64
-      #   - KEYSTORE_PASSWORD
-      #   - KEY_ALIAS
-      #   - KEY_PASSWORD
+      # Keystore-ul e în repo (android/keystore/release.jks + key.properties).
+      # CI rulează direct release-build, nu trebuie secret-uri.
       # ---------------------------------------------------------------
-      - name: Decode keystore (if provided)
-        if: ${{ env.KEYSTORE_BASE64 != '' }}
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: |
-          mkdir -p android/keystore
-          echo "$KEYSTORE_BASE64" | base64 -d > android/keystore/release.jks
-          echo "Keystore decoded."
-
-      - name: Create key.properties (if provided)
-        if: ${{ env.KEYSTORE_BASE64 != '' }}
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          cat > android/key.properties << EOF
-          storeFile=keystore/release.jks
-          storePassword=${KEYSTORE_PASSWORD}
-          keyAlias=${KEY_ALIAS}
-          keyPassword=${KEY_PASSWORD}
-          EOF
-          echo "key.properties created."
 
       - name: Build APK (release)
         run: |
